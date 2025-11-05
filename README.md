@@ -19,5 +19,6 @@
   It´ll ask to open up Google Chrome, allow it to deploy the project and it should be running on a website called `localhost`
 
   The app is live and interactable!
+  Refreshing the website will reset the state of the program and there is no data being stored anywhere, this is just a framework.
 
   To shut down the program, type `^C` into the `Terminal` application to terminate the program from running infinitely in your computer
