@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HomeScreen } from "./components/HomeScreen";
 import { LocationList } from "./components/LocationList";
 import { CafeMenu } from "./components/CafeMenu";
@@ -7,6 +7,7 @@ import { OrderStatus } from "./components/OrderStatus";
 import { OrdersScreen } from "./components/OrdersScreen";
 import { AccountScreen } from "./components/AccountScreen";
 import { BottomNav } from "./components/BottomNav";
+
 
 interface MenuItem {
   id: string;
@@ -61,6 +62,7 @@ export default function App() {
   const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderNumber, setOrderNumber] = useState<string>("");
+  const [orderTimestamp, setOrderTimestamp] = useState<number>(Date.now());
   const [pickupTime, setPickupTime] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
@@ -142,6 +144,32 @@ export default function App() {
       isOpen: true
     }
   ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOrders(prevOrders =>
+        prevOrders.map(order => {
+          if (order.status === "preparing") {
+            const orderTime = new Date(parseInt(order.id.replace('order-', ''))).getTime();
+            const now = Date.now();
+            const minutesPassed = (now - orderTime) / 1000 / 60;
+
+            // Find the cafe's wait time
+            const cafe = cafes.find(c => c.name === order.cafeName);
+            const waitTime = cafe?.waitTime || 5; // Default 5 minutes
+
+            // Change this back to use actual wait time
+            if (minutesPassed >= 0.1) {
+              return { ...order, status: "ready" as const };
+            }
+          }
+          return order;
+        })
+      );
+    }, 5000); // Check every 5 seconds (faster than 10 seconds)
+
+    return () => clearInterval(interval);
+  }, [cafes]);
 
   const menuItems: MenuItem[] = [
     {
@@ -226,30 +254,32 @@ export default function App() {
     },
   ];
 
-  // Mock recent orders
-  const recentOrders: RecentOrder[] = [
-    {
-      id: "r1",
-      cafeName: "Library Cafe",
-      items: ["Latte", "Croissant"],
-      total: 8.25,
-      date: "Nov 3, 2025",
-    },
-    {
-      id: "r2",
-      cafeName: "Student Union Cafe",
-      items: ["Cappuccino"],
-      total: 4.50,
-      date: "Nov 2, 2025",
-    },
-    {
-      id: "r3",
-      cafeName: "Engineering Espresso Bar",
-      items: ["Cold Brew", "Blueberry Scone"],
-      total: 8.00,
-      date: "Nov 1, 2025",
-    },
-  ];
+// Mock orders
+const mockOrders = [
+  {
+    id: "1",
+    orderNumber: "QL95PP",
+    cafeName: "Starbucks (UMC)",
+    cafeAddress: "First Floor, UMC",
+    items: ["1x Espresso"],
+    total: 3.78,
+    status: "ready",
+    pickupTime: "ASAP (~15 min)",
+    date: "2025-11-05",
+  },
+  {
+    id: "2",
+    orderNumber: "JK88WW",
+    cafeName: "Ink Coffee",
+    cafeAddress: "Basement Level, UMC",
+    items: ["Latte", "Bagel"],
+    total: 7.45,
+    status: "completed",
+    pickupTime: "10:15 AM",
+    date: "2025-11-03",
+  },
+];
+
 
   const handleSelectCafe = (cafeId: string) => {
     const cafe = cafes.find((c) => c.id === cafeId);
@@ -297,13 +327,15 @@ export default function App() {
     setPickupTime(time);
     const newOrderNumber = Math.random().toString(36).substring(2, 8).toUpperCase();
     setOrderNumber(newOrderNumber);
+    const timestamp = Date.now(); // Capture timestamp
+    setOrderTimestamp(timestamp);
     
     // Add to orders
     if (selectedCafe) {
       const cartTotal = cart.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0);
       const orderTotal = cartTotal * 1.08;
       const newOrder: Order = {
-        id: `order-${Date.now()}`,
+        id: `order-${timestamp}`,
         orderNumber: newOrderNumber,
         cafeName: selectedCafe.name,
         cafeAddress: selectedCafe.address,
@@ -317,6 +349,19 @@ export default function App() {
     }
     
     setCurrentScreen("order-status");
+  };
+
+  const handleConfirmPickup = (orderId: string, rating: number) => {
+    console.log(`Order ${orderId} picked up with rating: ${rating}`);
+
+    // Update the order status to completed
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order.id === orderId
+          ? { ...order, status: "completed" as const }
+          : order
+      )
+    );
   };
 
   const handleBackToHome = () => {
@@ -333,9 +378,47 @@ export default function App() {
   };
 
   const handleReorder = (orderId: string) => {
-    // In a real app, this would load the order items into cart
-    // For now, just navigate to locations
-    setCurrentScreen("locations");
+    console.log("Reorder clicked:", orderId);
+
+    // Find the order
+    const order = orders.find(o => o.id === orderId);
+    if (!order) {
+      console.log("Order not found");
+      return;
+    }
+
+    // Find the cafe
+    const cafe = cafes.find(c => c.name === order.cafeName);
+    if (!cafe) {
+      console.log("Cafe not found");
+      return;
+    }
+
+    // Set the selected cafe
+    setSelectedCafe(cafe);
+
+    // Rebuild the cart from order items
+    const newCart = order.items.map(itemString => {
+      // Parse items "2x Latte" -> quantity: 2, name: "Latte"
+      const match = itemString.match(/(\d+)x\s+(.+)/);
+      if (!match) return null;
+
+      const quantity = parseInt(match[1]);
+      const itemName = match[2];
+
+      // Find the menu item from menuItems (not cafe.menu)
+      const menuItem = menuItems.find(m => m.name === itemName);
+      if (!menuItem) {
+        console.log("Menu item not found:", itemName);
+        return null;
+      }
+
+      return { menuItem, quantity };
+    }).filter((item): item is CartItem => item !== null); // Type-safe filter
+
+    console.log("New cart:", newCart);
+    setCart(newCart);
+    setCurrentScreen("cart"); // Changed from "checkout" to "cart"
   };
 
   const handleNavigate = (screen: MainScreen) => {
@@ -375,7 +458,7 @@ export default function App() {
         <div className={`p-6 h-screen overflow-auto ${showBottomNav ? 'pb-24' : ''}`}>
           {currentScreen === "home" && (
             <HomeScreen
-              recentOrders={recentOrders}
+              orders={orders}
               onReorder={handleReorder}
               onFindCafe={handleFindCafe}
             />
@@ -421,13 +504,15 @@ export default function App() {
               pickupTime={pickupTime}
               orderNumber={orderNumber}
               onBackToHome={handleBackToHome}
+              orderTimestamp={orderTimestamp}
             />
           )}
 
           {currentScreen === "orders" && (
             <OrdersScreen
-              orders={orders}
+              orders={mockOrders}
               onViewOrder={handleViewOrder}
+              onConfirmPickup={handleConfirmPickup}
             />
           )}
 

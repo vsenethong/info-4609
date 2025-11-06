@@ -1,5 +1,19 @@
 # Default ignored files
 /shelf/
 /workspace.xml
+
 # Editor-based HTTP Client requests
 /httpRequests/
+
+# Node modules
+node_modules/
+
+# IDE
+.idea/
+
+# Vite build artifacts
+.vite/
+
+# Package lock
+package-lock.json
+.package-lock.json

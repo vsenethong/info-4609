@@ -46,6 +46,7 @@ export function OrderStatus({
   const [orderStatus, setOrderStatus] = useState<"confirmed" | "preparing" | "ready">("confirmed");
   const [estimatedTime, setEstimatedTime] = useState(cafe.waitTime);
   const [progress, setProgress] = useState(25);
+  const [orderTimestamp, setOrderTimestamp] = useState<number>(Date.now());
 
   useEffect(() => {
     const timer1 = setTimeout(() => {
