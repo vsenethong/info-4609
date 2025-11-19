@@ -8,7 +8,7 @@
 
   Run `git clone paste_ssh_here` 
 
-  Run `git ls` it will list all the files on your computer, `info-4609` should be on there
+  Run `ls` it will list all the files on your computer, `info-4609` should be on there
 
   Run `cd info-4609` to enter the folder of the project
 
