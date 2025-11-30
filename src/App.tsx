@@ -83,10 +83,10 @@ export default function App() {
     {
       id: 'weathertech',
       name: 'WeatherTech Cafe & Bakery',
-      address: 'Center for Community (C4C)',  // adjust exact address if known
+      address: 'Center for Community (C4C)',
       distance: 0.1,   // example placeholder
       waitTime: 5,     // example placeholder
-      image: '/images/cafes/weathertech.png',  // you’ll add your asset or URL
+      image: '/images/cafes/weathertech.png',
       isOpen: true
     },
     {
@@ -122,7 +122,7 @@ export default function App() {
       address: 'Koelbel Building',
       distance: 0.4,
       waitTime: 8,
-      image: '/images/violetpeak.jpg',
+      image: '/images/koelbelviolet.png',
       isOpen: true
     },
     {
@@ -140,7 +140,7 @@ export default function App() {
       address: 'Engineering Center South Lobby',
       distance: 0.4,
       waitTime: 8,
-      image: 'images/violetpeak.jpg',
+      image: '/images/southviolet.png',
       isOpen: true
     }
   ];
@@ -353,7 +353,6 @@ const mockOrders = [
 
   const handleConfirmPickup = (orderId: string, rating: number) => {
     console.log(`Order ${orderId} picked up with rating: ${rating}`);
-
     // Update the order status to completed
     setOrders(prevOrders =>
       prevOrders.map(order =>
