@@ -122,7 +122,7 @@ export default function App() {
       address: 'Koelbel Building',
       distance: 0.4,
       waitTime: 8,
-      image: '/images/koelbelviolet.png',
+      image: 'public/images/cafes/koelbelviolet.png',
       isOpen: true
     },
     {
@@ -140,7 +140,7 @@ export default function App() {
       address: 'Engineering Center South Lobby',
       distance: 0.4,
       waitTime: 8,
-      image: '/images/southviolet.png',
+      image: 'public/images/cafes/southviolet.png',
       isOpen: true
     }
   ];
@@ -171,115 +171,340 @@ export default function App() {
     return () => clearInterval(interval);
   }, [cafes]);
 
-  const menuItems: MenuItem[] = [
-    {
-      id: "m1",
-      name: "Espresso",
-      description: "Rich and bold single shot espresso",
-      price: 3.50,
-      image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      category: "Coffee",
-    },
-    {
-      id: "m2",
+  const cafeMenus: Record<string, MenuItem[]> = {
+    'starbucks_umc': [
+      {
+        id: "sb_m1",
+        name: "Pike Place Roast",
+        description: "Starbucks signature medium roast coffee",
+        price: 2.95,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "sb_m2",
+        name: "Caffè Latte",
+        description: "Espresso with steamed milk and light layer of foam",
+        price: 5.25,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "sb_m3",
+        name: "Caramel Macchiato",
+        description: "Espresso with vanilla, steamed milk and caramel drizzle",
+        price: 5.75,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "sb_m4",
+        name: "Cappuccino",
+        description: "Espresso with steamed milk and thick layer of foam",
+        price: 4.95,
+        image: "https://images.unsplash.com/photo-1708430651927-20e2e1f1e8f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXBwdWNjaW5vJTIwY29mZmVlfGVufDF8fHx8MTc2MjIzOTA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "sb_m5",
+        name: "Iced Caramel Macchiato",
+        description: "Vanilla, milk, ice, espresso and caramel drizzle",
+        price: 5.95,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Iced Drinks",
+      },
+      {
+        id: "sb_m6",
+        name: "Butter Croissant",
+        description: "Classic French buttery pastry",
+        price: 3.95,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Pastries",
+      },
+      {
+        id: "sb_m7",
+        name: "Chocolate Chip Cookie",
+        description: "Soft and chewy chocolate chip cookie",
+        price: 2.95,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Pastries",
+      },
+    ],
+    'weathertech': [
+      {
+        id: "wt_m1",
+        name: "House Blend Coffee",
+        description: "Fresh roasted daily blend, smooth and balanced",
+        price: 3.25,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "wt_m2",
+        name: "Cappuccino",
+        description: "Rich espresso with velvety steamed milk foam",
+        price: 4.50,
+        image: "https://images.unsplash.com/photo-1708430651927-20e2e1f1e8f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXBwdWNjaW5vJTIwY29mZmVlfGVufDF8fHx8MTc2MjIzOTA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "wt_m3",
+        name: "Cinnamon Roll",
+        description: "Freshly baked with cream cheese frosting",
+        price: 4.50,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Bakery",
+      },
+      {
+        id: "wt_m4",
+        name: "Blueberry Muffin",
+        description: "Moist muffin packed with fresh blueberries",
+        price: 3.75,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Bakery",
+      },
+      {
+        id: "wt_m5",
+        name: "Breakfast Sandwich",
+        description: "Egg, cheese, and choice of meat on English muffin",
+        price: 6.95,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Food",
+      },
+      {
+        id: "wt_m6",
+        name: "Iced Coffee",
+        description: "Refreshing cold brewed coffee over ice",
+        price: 3.95,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Iced Drinks",
+      },
+    ],
+    'laughinggoat': [
+      {
+        id: "lg_m1",
+        name: "Cortado",
+        description: "Espresso with equal parts warm steamed milk",
+        price: 4.25,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "lg_m2",
+        name: "Pour Over Coffee",
+        description: "Single origin hand-brewed coffee",
+        price: 4.50,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "lg_m3",
+        name: "Flat White",
+        description: "Espresso with microfoam steamed milk",
+        price: 4.75,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "lg_m4",
+        name: "Avocado Toast",
+        description: "Fresh avocado on artisan bread with seasonings",
+        price: 8.50,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Food",
+      },
+      {
+        id: "lg_m5",
+        name: "Bagel with Cream Cheese",
+        description: "Toasted bagel with house-made cream cheese",
+        price: 4.95,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Food",
+      },
+    ],
+    'fens': [
+      {
+        id: "fn_m1",
+        name: "Espresso",
+        description: "Rich single shot of premium espresso",
+        price: 3.00,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "fn_m2",
+        name: "Matcha Latte",
+        description: "Premium Japanese matcha with steamed milk",
+        price: 5.50,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Specialty",
+      },
+      {
+        id: "fn_m3",
+        name: "Chai Latte",
+        description: "Spiced black tea with steamed milk",
+        price: 4.95,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Specialty",
+      },
+      {
+        id: "fn_m4",
+        name: "Cold Brew",
+        description: "Smooth cold-steeped coffee concentrate",
+        price: 4.50,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Iced Drinks",
+      },
+      {
+        id: "fn_m5",
+        name: "Breakfast Burrito",
+        description: "Eggs, cheese, potatoes, and salsa wrapped in tortilla",
+        price: 7.50,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Food",
+      },
+    ],
+    'foolishcraig': [
+      {
+        id: "fc_m1",
+        name: "Americano",
+        description: "Espresso diluted with hot water",
+        price: 3.75,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "fc_m2",
+        name: "Latte",
+        description: "Espresso with steamed milk",
+        price: 4.50,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "fc_m3",
+        name: "Mocha",
+        description: "Espresso with chocolate and steamed milk",
+        price: 5.00,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "fc_m4",
+        name: "Cookies",
+        description: "Assorted fresh-baked cookies",
+        price: 2.50,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Snacks",
+      },
+    ],
+    'violetpeak': [
+      {
+        id: "vp_m1",
+        name: "Cappuccino",
+        description: "Espresso with steamed milk and foam",
+        price: 4.50,
+        image: "https://images.unsplash.com/photo-1708430651927-20e2e1f1e8f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXBwdWNjaW5vJTIwY29mZmVlfGVufDF8fHx8MTc2MjIzOTA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "vp_m2",
+        name: "Drip Coffee",
+        description: "Fresh brewed house coffee",
+        price: 2.75,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "vp_m3",
+        name: "Iced Latte",
+        description: "Espresso with cold milk over ice",
+        price: 4.95,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Iced Drinks",
+      },
+      {
+        id: "vp_m4",
+        name: "Muffin",
+        description: "Daily selection of fresh muffins",
+        price: 3.50,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Pastries",
+      },
+    ],
+    'northvioletpeak': [
+      {
+        id: "nvp_m1",
+        name: "Latte",
+        description: "Espresso with steamed milk and light foam",
+        price: 4.75,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "nvp_m2",
+        name: "Espresso",
+        description: "Double shot of espresso",
+        price: 3.50,
+        image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Coffee",
+      },
+      {
+        id: "nvp_m3",
+        name: "Hot Chocolate",
+        description: "Rich chocolate with steamed milk and whipped cream",
+        price: 4.25,
+        image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Specialty",
+      },
+      {
+        id: "nvp_m4",
+        name: "Croissant",
+        description: "Buttery, flaky French pastry",
+        price: 3.75,
+        image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+        category: "Pastries",
+      },
+    ],
+    'southvioletpeak': [
+     {
+      id: "nvp_m1",
       name: "Latte",
-      description: "Smooth espresso with steamed milk and delicate foam",
+      description: "Espresso with steamed milk and light foam",
       price: 4.75,
-      image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+      image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       category: "Coffee",
     },
     {
-      id: "m3",
-      name: "Cappuccino",
-      description: "Perfect balance of espresso, steamed milk, and foam",
-      price: 4.50,
-      image: "https://images.unsplash.com/photo-1708430651927-20e2e1f1e8f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXBwdWNjaW5vJTIwY29mZmVlfGVufDF8fHx8MTc2MjIzOTA0NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      category: "Coffee",
-    },
-    {
-      id: "m4",
-      name: "Americano",
-      description: "Espresso shots topped with hot water for a light layer of crema",
-      price: 3.75,
-      image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      category: "Coffee",
-    },
-    {
-      id: "m5",
-      name: "Mocha",
-      description: "Espresso with chocolate, steamed milk, and whipped cream",
-      price: 5.25,
-      image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      category: "Coffee",
-    },
-    {
-      id: "m6",
-      name: "Iced Latte",
-      description: "Chilled espresso with cold milk over ice",
-      price: 5.00,
-      image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      category: "Iced Drinks",
-    },
-    {
-      id: "m7",
-      name: "Cold Brew",
-      description: "Smooth, slow-steeped coffee served over ice",
-      price: 4.25,
-      image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      category: "Iced Drinks",
-    },
-    {
-      id: "m8",
-      name: "Croissant",
-      description: "Buttery, flaky French pastry baked fresh daily",
+      id: "nvp_m2",
+      name: "Espresso",
+      description: "Double shot of espresso",
       price: 3.50,
-      image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      category: "Pastries",
+      image: "https://images.unsplash.com/photo-1606310553997-7a01e22900ae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NjIyMjgwOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      category: "Coffee",
     },
     {
-      id: "m9",
-      name: "Chocolate Muffin",
-      description: "Moist chocolate muffin with chocolate chips",
-      price: 4.00,
-      image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      category: "Pastries",
+      id: "nvp_m3",
+      name: "Hot Chocolate",
+      description: "Rich chocolate with steamed milk and whipped cream",
+      price: 4.25,
+      image: "https://images.unsplash.com/photo-1529892485617-25f63cd7b1e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydHxlbnwxfHx8fDE3NjIyNjg0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      category: "Specialty",
     },
     {
-      id: "m10",
-      name: "Blueberry Scone",
-      description: "Fresh baked scone with blueberries and vanilla glaze",
+      id: "nvp_m4",
+      name: "Croissant",
+      description: "Buttery, flaky French pastry",
       price: 3.75,
-      image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+      image: "https://images.unsplash.com/photo-1733754348873-feeb45df3bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnl8ZW58MXx8fHwxNzYyMjY2MzE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
       category: "Pastries",
     },
-  ];
+    ],
+  };
 
-// Mock orders
-const mockOrders = [
-  {
-    id: "1",
-    orderNumber: "QL95PP",
-    cafeName: "Starbucks (UMC)",
-    cafeAddress: "First Floor, UMC",
-    items: ["1x Espresso"],
-    total: 3.78,
-    status: "ready",
-    pickupTime: "ASAP (~15 min)",
-    date: "2025-11-05",
-  },
-  {
-    id: "2",
-    orderNumber: "JK88WW",
-    cafeName: "Ink Coffee",
-    cafeAddress: "Basement Level, UMC",
-    items: ["Latte", "Bagel"],
-    total: 7.45,
-    status: "completed",
-    pickupTime: "10:15 AM",
-    date: "2025-11-03",
-  },
-];
-
+  const getMenuForCafe = (cafeId: string): MenuItem[] => {
+      return cafeMenus[cafeId] || [];
+  };
 
   const handleSelectCafe = (cafeId: string) => {
     const cafe = cafes.find((c) => c.id === cafeId);
@@ -377,47 +602,33 @@ const mockOrders = [
   };
 
   const handleReorder = (orderId: string) => {
-    console.log("Reorder clicked:", orderId);
-
-    // Find the order
     const order = orders.find(o => o.id === orderId);
-    if (!order) {
-      console.log("Order not found");
-      return;
-    }
+    if (!order) return;
 
-    // Find the cafe
     const cafe = cafes.find(c => c.name === order.cafeName);
-    if (!cafe) {
-      console.log("Cafe not found");
-      return;
-    }
+    if (!cafe) return;
 
-    // Set the selected cafe
     setSelectedCafe(cafe);
 
-    // Rebuild the cart from order items
+    // Use cafe-specific menu
+    const cafeMenu = getMenuForCafe(cafe.id);
+
     const newCart = order.items.map(itemString => {
-      // Parse items "2x Latte" -> quantity: 2, name: "Latte"
       const match = itemString.match(/(\d+)x\s+(.+)/);
       if (!match) return null;
 
       const quantity = parseInt(match[1]);
       const itemName = match[2];
 
-      // Find the menu item from menuItems (not cafe.menu)
-      const menuItem = menuItems.find(m => m.name === itemName);
-      if (!menuItem) {
-        console.log("Menu item not found:", itemName);
-        return null;
-      }
+      // Search in cafe-specific menu
+      const menuItem = cafeMenu.find(m => m.name === itemName);
+      if (!menuItem) return null;
 
       return { menuItem, quantity };
-    }).filter((item): item is CartItem => item !== null); // Type-safe filter
+    }).filter((item): item is CartItem => item !== null);
 
-    console.log("New cart:", newCart);
     setCart(newCart);
-    setCurrentScreen("cart"); // Changed from "checkout" to "cart"
+    setCurrentScreen("cart");
   };
 
   const handleNavigate = (screen: MainScreen) => {
@@ -474,7 +685,7 @@ const mockOrders = [
           {currentScreen === "menu" && selectedCafe && (
             <CafeMenu
               cafe={selectedCafe}
-              menuItems={menuItems}
+              menuItems={getMenuForCafe(selectedCafe.id)}
               cart={cart}
               onAddToCart={handleAddToCart}
               onRemoveFromCart={handleRemoveFromCart}
