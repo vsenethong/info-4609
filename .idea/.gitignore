@@ -11,8 +11,9 @@ node_modules/
 # IDE
 .idea/
 
-# Vite build artifacts
+# Vite build cache and generated files
 .vite/
+node_modules/.vite/
 
 # Package lock
 package-lock.json
