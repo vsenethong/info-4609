@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { ArrowLeft, Plus, Minus, Trash2, Clock } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Trash2, Clock, Check } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Badge } from "./ui/badge";
 
 interface MenuItem {
   id: string;
@@ -36,6 +37,75 @@ interface CartProps {
   onClearItem: (itemId: string) => void;
   onBack: () => void;
   onPlaceOrder: (pickupTime: string) => void;
+}
+
+// Reusable pickup time option component
+interface PickupOptionProps {
+  id: string;
+  value: string;
+  selected: boolean;
+  onSelect: (value: string) => void;
+  title: string;
+  description?: string;
+  icon?: React.ReactNode;
+}
+
+function PickupOption({
+  id,
+  value,
+  selected,
+  onSelect,
+  title,
+  description,
+  icon
+}: PickupOptionProps) {
+  return (
+    <div
+      className={`
+        relative border rounded-lg p-4 cursor-pointer transition-all duration-200
+        ${selected
+          ? 'border-green-600 bg-green-50 shadow-sm'
+          : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
+        }
+      `}
+      onClick={() => onSelect(value)}
+    >
+      <div className="flex items-start gap-3">
+        <div className={`
+          flex items-center justify-center h-6 w-6 rounded-full border-2 flex-shrink-0 mt-0.5
+          ${selected
+            ? 'border-green-600 bg-green-600'
+            : 'border-neutral-300'
+          }
+        `}>
+          {selected && (
+            <Check className="h-3.5 w-3.5 text-white stroke-[3]" />
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            {icon}
+            <Label
+              htmlFor={id}
+              className={`text-base font-medium cursor-pointer ${selected ? 'text-green-700' : 'text-neutral-900'}`}
+            >
+              {title}
+            </Label>
+            {selected && value === "asap" && (
+              <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 text-xs">
+                Recommended
+              </Badge>
+            )}
+          </div>
+          {description && (
+            <p className={`text-sm ${selected ? 'text-green-600' : 'text-neutral-600'}`}>
+              {description}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function Cart({
@@ -74,12 +144,13 @@ export function Cart({
   const timeSlots = generateTimeSlots();
 
   const handlePlaceOrder = () => {
-    const time = pickupOption === "asap" 
-      ? `ASAP (~${cafe.waitTime} min)` 
+    const time = pickupOption === "asap"
+      ? `ASAP (~${cafe.waitTime} min)`
       : scheduledTime;
     onPlaceOrder(time);
   };
 
+  // Empty cart state
   if (cart.length === 0) {
     return (
       <div className="flex flex-col h-full">
@@ -101,6 +172,7 @@ export function Cart({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Button variant="ghost" size="icon" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
@@ -111,7 +183,9 @@ export function Cart({
         </div>
       </div>
 
+      {/* Scrollable content */}
       <div className="flex-1 overflow-auto space-y-4">
+        {/* Cart Items */}
         <div className="space-y-3">
           {cart.map((item) => (
             <Card key={item.menuItem.id} className="overflow-hidden">
@@ -125,7 +199,7 @@ export function Cart({
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-sm">{item.menuItem.name}</h3>
+                    <h3 className="text-sm font-medium">{item.menuItem.name}</h3>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -136,17 +210,18 @@ export function Cart({
                     </Button>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
+                    <span className="text-sm font-medium">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
                     <div className="flex items-center gap-2">
                       <Button
                         size="icon"
                         variant="outline"
                         className="h-7 w-7"
                         onClick={() => onRemoveFromCart(item.menuItem.id)}
+                        disabled={item.quantity <= 1}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="w-6 text-center text-sm">{item.quantity}</span>
+                      <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
                       <Button
                         size="icon"
                         className="h-7 w-7"
@@ -162,55 +237,80 @@ export function Cart({
           ))}
         </div>
 
+        {/* Pickup Time Section - IMPROVED VISIBILITY */}
         <Card className="p-4">
-          <h3 className="mb-4">Pickup Time</h3>
-          <RadioGroup value={pickupOption} onValueChange={(v) => setPickupOption(v as "asap" | "scheduled")}>
-            <div className="flex items-center space-x-2 mb-3">
-              <RadioGroupItem value="asap" id="asap" />
-              <Label htmlFor="asap" className="flex items-center gap-2 cursor-pointer">
-                <Clock className="h-4 w-4 text-green-600" />
-                <div>
-                  <div>ASAP</div>
-                  <div className="text-sm text-neutral-600">Ready in ~{cafe.waitTime} min</div>
-                </div>
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="scheduled" id="scheduled" />
-              <Label htmlFor="scheduled" className="cursor-pointer">Schedule for later</Label>
-            </div>
+          <h3 className="mb-4 font-semibold">Pickup Time</h3>
+
+          <RadioGroup
+            value={pickupOption}
+            onValueChange={(v) => setPickupOption(v as "asap" | "scheduled")}
+            className="space-y-3"
+          >
+            {/* ASAP Option */}
+            <PickupOption
+              id="asap"
+              value="asap"
+              selected={pickupOption === "asap"}
+              onSelect={() => setPickupOption("asap")}
+              title="ASAP"
+              description={`Ready in ~${cafe.waitTime} minutes`}
+              icon={<Clock className="h-4 w-4 text-green-600" />}
+            />
+
+            {/* Schedule for Later Option */}
+            <PickupOption
+              id="scheduled"
+              value="scheduled"
+              selected={pickupOption === "scheduled"}
+              onSelect={() => setPickupOption("scheduled")}
+              title="Schedule for later"
+              icon={<Clock className="h-4 w-4 text-neutral-500" />}
+            />
           </RadioGroup>
 
+          {/* Time Selector for Scheduled Pickup */}
           {pickupOption === "scheduled" && (
-            <div className="mt-3">
+            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="mb-2">
+                <Label htmlFor="time-select" className="text-sm font-medium">
+                  Select pickup time
+                </Label>
+              </div>
               <Select value={scheduledTime} onValueChange={setScheduledTime}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select time" />
+                <SelectTrigger id="time-select" className="w-full">
+                  <SelectValue placeholder="Choose a time slot" />
                 </SelectTrigger>
                 <SelectContent>
                   {timeSlots.map((slot) => (
                     <SelectItem key={slot} value={slot}>
-                      {slot}
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-neutral-400" />
+                        {slot}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-neutral-500 mt-2">
+                Times are based on current preparation time
+              </p>
             </div>
           )}
         </Card>
 
+        {/* Order Summary */}
         <Card className="p-4">
-          <h3 className="mb-3">Order Summary</h3>
+          <h3 className="mb-3 font-semibold">Order Summary</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-neutral-600">Subtotal</span>
+              <span className="text-neutral-600">Subtotal ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-neutral-600">Tax</span>
               <span>${tax.toFixed(2)}</span>
             </div>
-            <div className="border-t pt-2 flex justify-between">
+            <div className="border-t pt-2 flex justify-between text-base font-semibold">
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
             </div>
@@ -218,15 +318,21 @@ export function Cart({
         </Card>
       </div>
 
+      {/* Fixed Bottom Button */}
       <div className="sticky bottom-0 bg-white border-t pt-4 mt-4">
-        <Button 
-          className="w-full h-12" 
+        <Button
+          className="w-full h-12"
           size="lg"
           onClick={handlePlaceOrder}
           disabled={pickupOption === "scheduled" && !scheduledTime}
         >
           Place Order · ${total.toFixed(2)}
         </Button>
+        {pickupOption === "scheduled" && !scheduledTime && (
+          <p className="text-xs text-red-500 text-center mt-2">
+            Please select a pickup time
+          </p>
+        )}
       </div>
     </div>
   );

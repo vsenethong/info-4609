@@ -3,8 +3,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Clock, MapPin, CheckCircle2, Package, Star, X } from "lucide-react";
 import { useState } from "react";
-import { Modal } from "./Modal.tsx";
-import { Portal } from "./Portal";
+import { OrderCard, PastOrderCard, Order } from './OrderComponents';
 
 interface Order {
   id: string;
@@ -71,7 +70,7 @@ function OrderCard({
             <div className="flex items-center gap-2 mb-1">
               <h3 className="text-sm font-medium">{order.cafeName}</h3>
               <StatusBadge status={order.status} />
-              {/* Show rating if it exists */}
+              {/* show rating if it exists */}
               {order.rating && (
                 <div className="flex items-center gap-1 ml-auto">
                   <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
@@ -145,20 +144,6 @@ function PastOrderCard({
           <p className="text-sm text-neutral-600 mb-2">{order.items.join(", ")}</p>
           <div className="flex items-center gap-2">
             <span className="text-xs text-neutral-500">{order.date}</span>
-            {order.rating && (
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-3 w-3 ${
-                      i < order.rating!
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </div>
         <span className="text-sm font-semibold ml-2">${order.total.toFixed(2)}</span>
@@ -206,9 +191,6 @@ export function OrdersScreen({
         onConfirmPickup(selectedOrderId, rating);
       }
 
-      // Show success message
-      alert(`Thank you for your ${rating}-star rating! Order marked as completed.`);
-
       setShowPickupModal(false);
       setSelectedOrderId(null);
       setRating(0);
@@ -222,7 +204,7 @@ export function OrdersScreen({
     setRating(0);
   };
 
-  // Find the selected order for display in the modal
+  // find the selected order for display in the modal
   const selectedOrder = selectedOrderId
     ? orders.find(order => order.id === selectedOrderId)
     : null;

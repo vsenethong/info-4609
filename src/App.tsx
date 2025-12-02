@@ -3,12 +3,21 @@ import { HomeScreen } from "./components/HomeScreen";
 import { LocationList } from "./components/LocationList";
 import { CafeMenu } from "./components/CafeMenu";
 import { Cart } from "./components/Cart";
-import { OrderStatus } from "./components/OrderStatus";
 import { OrdersScreen } from "./components/OrdersScreen";
 import { AccountScreen } from "./components/AccountScreen";
 import { BottomNav } from "./components/BottomNav";
 import { getMenuForCafe, MenuItem } from "./data/menuData";
 import { PreferencesScreen } from "./components/PreferencesScreen";
+import {
+  ReceiptModal,
+  OrderDetails,
+  OrderStatus,
+  OrderCard,
+  PastOrderCard,
+  Order,
+  Cafe as CafeType,
+  CartItem as CartItemType
+} from './components/OrderComponents';
 
 interface CartItem {
   menuItem: MenuItem;
@@ -365,6 +374,10 @@ export default function App() {
 
   const handleViewOrder = (orderId: string) => {
     console.log("View order:", orderId);
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+      setSelectedOrder(order);
+    }
   };
 
   const handleOpenPreferences = () => {
@@ -392,6 +405,7 @@ export default function App() {
               orders={orders}
               onReorder={handleReorder}
               onFindCafe={handleFindCafe}
+              onViewOrder={handleViewOrder}
             />
           )}
 
@@ -443,9 +457,10 @@ export default function App() {
 
           {currentScreen === "orders" && (
             <OrdersScreen
-              orders={orders}  // Now using the real orders state
+              orders={orders}
               onViewOrder={handleViewOrder}
               onConfirmPickup={handleConfirmPickup}
+              onViewOrder={handleViewOrder}
             />
           )}
 

@@ -1,6 +1,7 @@
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { Coffee, MapPin, Clock, ChevronRight } from "lucide-react";
+import { Coffee, MapPin, Clock, ChevronRight, Receipt } from "lucide-react";
+import { Order } from './OrderComponents';
 
 interface Order {
   id: string;
@@ -18,9 +19,30 @@ interface HomeScreenProps {
   orders: Order[];
   onReorder: (orderId: string) => void;
   onFindCafe: () => void;
+  onViewOrder: (orderId: string) => void;
 }
 
-export function HomeScreen({ orders, onReorder, onFindCafe }: HomeScreenProps) {
+export function HomeScreen({
+  orders,
+  onReorder,
+  onFindCafe,
+  onViewOrder
+}: HomeScreenProps) {
+
+  const handleCardClick = (orderId: string, e: React.MouseEvent) => {
+    // Check if the click was on the "Order Again" button
+    const target = e.target as HTMLElement;
+    const isOrderAgainButton = target.closest('button')?.textContent?.includes('Order Again');
+    const isViewReceiptButton = target.closest('button')?.textContent?.includes('View Receipt');
+
+    if (isOrderAgainButton) {
+      onReorder(orderId);
+    }
+    if (isViewReceiptButton) {
+      onViewOrder(orderId);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -58,17 +80,14 @@ export function HomeScreen({ orders, onReorder, onFindCafe }: HomeScreenProps) {
 
         {/* Recent Order Quick Reorder */}
         {orders.length > 0 && (
-          <Card
-            className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => onReorder(orders[0].id)}
-          >
-            <div className="flex items-center justify-between">
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                   <Clock className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-base mb-1">Reorder Recent</h3>
+                  <h3 className="text-base mb-1">Your Recent Order</h3>
                   <p className="text-sm text-neutral-600">
                     {orders[0].items[0]}
                     {orders[0].items.length > 1 && ` +${orders[0].items.length - 1} more`}
@@ -76,9 +95,27 @@ export function HomeScreen({ orders, onReorder, onFindCafe }: HomeScreenProps) {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm">${orders[0].total.toFixed(2)}</div>
-                <ChevronRight className="h-5 w-5 text-neutral-400 ml-auto" />
+                <div className="text-sm font-medium">${orders[0].total.toFixed(2)}</div>
               </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 h-9 text-xs"
+                onClick={() => onReorder(orders[0].id)}
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                Order Again
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 h-9 text-xs"
+                onClick={() => onViewOrder(orders[0].id)}
+              >
+                <Receipt className="h-3 w-3 mr-1" />
+                View Receipt
+              </Button>
             </div>
           </Card>
         )}
@@ -88,27 +125,68 @@ export function HomeScreen({ orders, onReorder, onFindCafe }: HomeScreenProps) {
       {orders.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-lg px-1">Recent Orders</h2>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {orders.slice(0, 3).map((order) => (
               <Card
                 key={order.id}
-                className="p-4 cursor-pointer hover:bg-neutral-50 transition-colors"
-                onClick={() => onReorder(order.id)}
+                className="p-4 hover:shadow-md transition-shadow"
+                onClick={(e) => handleCardClick(order.id, e)}
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-sm mb-1">{order.cafeName}</h3>
-                    <p className="text-sm text-neutral-600">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-sm font-semibold">{order.cafeName}</h3>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600">
+                        {order.orderNumber}
+                      </span>
+                    </div>
+                    <p className="text-sm text-neutral-600 line-clamp-1">
                       {order.items.join(", ")}
                     </p>
                   </div>
-                  <span className="text-sm">${order.total.toFixed(2)}</span>
+                  <span className="text-sm font-medium">${order.total.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs text-neutral-500">
-                  <span>{order.date}</span>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs">
-                    Order Again
-                  </Button>
+
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-neutral-500">{order.date}</span>
+                    <div className={`text-xs px-2 py-0.5 rounded-full ${
+                      order.status === 'completed'
+                        ? 'bg-green-100 text-green-800'
+                        : order.status === 'ready'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs px-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewOrder(order.id);
+                      }}
+                    >
+                      <Receipt className="h-3 w-3 mr-1" />
+                      Receipt
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs px-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onReorder(order.id);
+                      }}
+                    >
+                      <Clock className="h-3 w-3 mr-1" />
+                      Order Again
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
