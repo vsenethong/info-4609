@@ -12,6 +12,7 @@ interface MenuItem {
   price: number;
   image: string;
   category: string;
+  allergens?: string[];
 }
 
 interface Cafe {

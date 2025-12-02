@@ -19,16 +19,22 @@ interface AccountScreenProps {
   isLoggedIn: boolean;
   userEmail: string;
   userName: string;
+  userAllergens: string[];
   onLogin: (email: string, password: string) => void;
   onLogout: () => void;
+  onUpdateAllergens: (allergens: string[]) => void;
+  onOpenPreferences: () => void;
 }
 
 export function AccountScreen({ 
   isLoggedIn, 
   userEmail, 
   userName,
+  userAllergens,
   onLogin, 
-  onLogout 
+  onLogout,
+  onUpdateAllergens,
+  onOpenPreferences
 }: AccountScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -147,7 +153,10 @@ export function AccountScreen({
             <ChevronRight className="h-5 w-5 text-neutral-400" />
           </button>
           
-          <button className="w-full p-4 flex items-center justify-between hover:bg-neutral-50 transition-colors">
+          <button onClick={
+              onOpenPreferences}
+              className="w-full p-4 flex items-center justify-between hover:bg-neutral-50 transition-colors"
+              >
             <div className="flex items-center gap-3">
               <Settings className="h-5 w-5 text-neutral-600" />
               <span>Preferences</span>
