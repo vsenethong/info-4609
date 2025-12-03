@@ -1,5 +1,15 @@
 # Campus Cafe Connect App
 
+A collaborative effort to improve a cafe experience at CU Boulder!
+
+Group Members: Aaron Couhault,
+Turner Davis,
+Marcus Huston,
+Brendan Myers,
+Vanessa Senethong,
+Leland Smith,
+Hilna Yonas
+
 ## How to run the code
 
 On GitHub, click the green Code<> box and copy the SSH key

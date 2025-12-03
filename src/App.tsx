@@ -54,19 +54,7 @@ export default function App() {
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
   const [selectedDrinkForCustomization, setSelectedDrinkForCustomization] = useState<MenuItem | null>(null);
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "1",
-      orderNumber: "QL95PP",
-      cafeName: "Starbucks (UMC)",
-      cafeAddress: "First Floor, UMC",
-      items: ["1x Espresso"],
-      total: 3.78,
-      status: "completed",
-      pickupTime: "10:15 AM",
-      date: "2025-11-03",
-    },
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [userAllergens, setUserAllergens] = useState<string[]>([]);
   const [userPreferences, setUserPreferences] = useState({
     notificationsEnabled: true,
