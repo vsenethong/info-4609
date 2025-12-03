@@ -147,7 +147,7 @@ export function CustomizeDrink({
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold">Customize Drink</h1>
+          <h1 className="text-100pt font-semibold">Customize Drink</h1>
           <p className="text-sm text-neutral-600">{menuItem.name}</p>
         </div>
       </div>

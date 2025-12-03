@@ -3,18 +3,6 @@ import { Button } from "./ui/button";
 import { Coffee, MapPin, Clock, ChevronRight, Receipt } from "lucide-react";
 import { Order } from './OrderComponents';
 
-interface Order {
-  id: string;
-  orderNumber: string;
-  cafeName: string;
-  cafeAddress: string;
-  items: string[];
-  total: number;
-  status: string;
-  pickupTime: string;
-  date: string;
-}
-
 interface HomeScreenProps {
   orders: Order[];
   onReorder: (orderId: string) => void;

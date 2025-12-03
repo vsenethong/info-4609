@@ -8,6 +8,8 @@ import { AccountScreen } from "./components/AccountScreen";
 import { BottomNav } from "./components/BottomNav";
 import { getMenuForCafe, MenuItem } from "./data/menuData";
 import { PreferencesScreen } from "./components/PreferencesScreen";
+import { CustomizeDrink } from "./components/CustomizeDrinkScreen";
+import type { CustomizedItem } from "./components/CustomizeDrinkScreen";
 import {
   ReceiptModal,
   OrderDetails,
@@ -23,6 +25,7 @@ interface CartItem {
   menuItem: MenuItem;
   quantity: number;
   selectedSize?: 'S' | 'M' | 'L';
+  customizations?: CustomizedItem;
 }
 
 interface Cafe {
@@ -35,21 +38,8 @@ interface Cafe {
   isOpen: boolean;
 }
 
-interface Order {
-  id: string;
-  orderNumber: string;
-  cafeName: string;
-  cafeAddress: string;
-  items: string[];
-  total: number;
-  status: "preparing" | "ready" | "completed";
-  pickupTime: string;
-  date: string;
-  rating?: number;
-}
-
 type MainScreen = "home" | "orders" | "account";
-type AppScreen = MainScreen | "locations" | "menu" | "cart" | "order-status" | "preferences";
+type AppScreen = MainScreen | "locations" | "menu" | "cart" | "order-status" | "preferences" | "customize-drink";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("home");
@@ -57,11 +47,13 @@ export default function App() {
   const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderNumber, setOrderNumber] = useState<string>("");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderTimestamp, setOrderTimestamp] = useState<number>(Date.now());
   const [pickupTime, setPickupTime] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
+  const [selectedDrinkForCustomization, setSelectedDrinkForCustomization] = useState<MenuItem | null>(null);
   const [orders, setOrders] = useState<Order[]>([
     {
       id: "1",
@@ -70,23 +62,19 @@ export default function App() {
       cafeAddress: "First Floor, UMC",
       items: ["1x Espresso"],
       total: 3.78,
-      status: "ready",
-      pickupTime: "ASAP (~15 min)",
-      date: "2025-11-05",
-    },
-    {
-      id: "2",
-      orderNumber: "JK88WW",
-      cafeName: "Ink Coffee",
-      cafeAddress: "Basement Level, UMC",
-      items: ["Latte", "Bagel"],
-      total: 7.45,
       status: "completed",
       pickupTime: "10:15 AM",
       date: "2025-11-03",
     },
   ]);
   const [userAllergens, setUserAllergens] = useState<string[]>([]);
+  const [userPreferences, setUserPreferences] = useState({
+    notificationsEnabled: true,
+    orderReminders: true,
+    promotionalEmails: false,
+    defaultPickupTime: "asap",
+    favoriteLocation: "none",
+  });
 
   // Campus cafe data
   const cafes: Cafe[] = [
@@ -197,156 +185,254 @@ export default function App() {
     }
   };
 
-  const handleAddToCart = (item: MenuItem, size?: 'S' | 'M' | 'L') => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find(
-        (cartItem) =>
-          cartItem.menuItem.id === item.id &&
-          cartItem.selectedSize === size
-      );
+  const handleAddToCart = (item: MenuItem, size?: 'S' | 'M' | 'L', customizations?: CustomizedItem) => {
+      setCart((prevCart) => {
+        if (customizations) {
+          const existingItem = prevCart.find(
+            (cartItem) =>
+              cartItem.menuItem.id === item.id &&
+              cartItem.selectedSize === size &&
+              JSON.stringify(cartItem.customizations) === JSON.stringify(customizations)
+          );
 
-      if (existingItem) {
-        return prevCart.map((cartItem) =>
-          cartItem.menuItem.id === item.id && cartItem.selectedSize === size
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
-      } else {
-        return [...prevCart, { menuItem: item, quantity: 1, selectedSize: size }];
-      }
-    });
-  };
+          if (existingItem) {
+            return prevCart.map((cartItem) =>
+              cartItem.menuItem.id === item.id &&
+              cartItem.selectedSize === size &&
+              JSON.stringify(cartItem.customizations) === JSON.stringify(customizations)
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            );
+          } else {
+            return [...prevCart, {
+              menuItem: item,
+              quantity: 1,
+              selectedSize: size,
+              customizations: customizations
+            }];
+          }
+        } else {
+          // For regular items (food or drinks without customization)
+          const existingItem = prevCart.find(
+            (cartItem) =>
+              cartItem.menuItem.id === item.id &&
+              cartItem.selectedSize === size &&
+              !cartItem.customizations // No customizations
+          );
 
-  const handleRemoveFromCart = (itemId: string, size?: 'S' | 'M' | 'L') => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find(
-        (cartItem) =>
-          cartItem.menuItem.id === itemId &&
-          cartItem.selectedSize === size
-      );
+          if (existingItem) {
+            return prevCart.map((cartItem) =>
+              cartItem.menuItem.id === item.id &&
+              cartItem.selectedSize === size &&
+              !cartItem.customizations
+                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                : cartItem
+            );
+          } else {
+            return [...prevCart, {
+              menuItem: item,
+              quantity: 1,
+              selectedSize: size
+            }];
+          }
+        }
+      });
+    };
 
-      if (existingItem && existingItem.quantity > 1) {
-        return prevCart.map((cartItem) =>
-          cartItem.menuItem.id === itemId && cartItem.selectedSize === size
-            ? { ...cartItem, quantity: cartItem.quantity - 1 }
-            : cartItem
-        );
-      } else {
-        return prevCart.filter(
+  const handleRemoveFromCart = (itemId: string, size?: 'S' | 'M' | 'L', customizations?: CustomizedItem) => {
+      setCart((prevCart) => {
+        const existingItem = prevCart.find(
           (cartItem) =>
-            !(cartItem.menuItem.id === itemId && cartItem.selectedSize === size)
+            cartItem.menuItem.id === itemId &&
+            cartItem.selectedSize === size &&
+            (customizations ? JSON.stringify(cartItem.customizations) === JSON.stringify(customizations) : true)
         );
-      }
-    });
-  };
 
-  const handleClearItem = (itemId: string, size?: 'S' | 'M' | 'L') => {
-    setCart((prevCart) =>
-      prevCart.filter(
-        (cartItem) =>
-          !(cartItem.menuItem.id === itemId && cartItem.selectedSize === size)
-      )
-    );
-  };
+        if (existingItem && existingItem.quantity > 1) {
+          return prevCart.map((cartItem) =>
+            cartItem.menuItem.id === itemId &&
+            cartItem.selectedSize === size &&
+            (customizations ? JSON.stringify(cartItem.customizations) === JSON.stringify(customizations) : true)
+              ? { ...cartItem, quantity: cartItem.quantity - 1 }
+              : cartItem
+          );
+        } else {
+          return prevCart.filter(
+            (cartItem) =>
+              !(cartItem.menuItem.id === itemId &&
+                cartItem.selectedSize === size &&
+                (customizations ? JSON.stringify(cartItem.customizations) === JSON.stringify(customizations) : true))
+          );
+        }
+      });
+    };
+
+    const handleClearItem = (itemId: string, size?: 'S' | 'M' | 'L', customizations?: CustomizedItem) => {
+      setCart((prevCart) =>
+        prevCart.filter(
+          (cartItem) =>
+            !(cartItem.menuItem.id === itemId &&
+              cartItem.selectedSize === size &&
+              (customizations ? JSON.stringify(cartItem.customizations) === JSON.stringify(customizations) : true))
+        )
+      );
+    };
+
+   // NEW: Handle customizing a drink
+    const handleCustomizeDrink = (item: MenuItem) => {
+      setSelectedDrinkForCustomization(item);
+      setCurrentScreen("customize-drink");
+    };
+
+    // NEW: Handle adding a customized drink to cart
+    const handleAddCustomizedDrink = (baseItem: MenuItem, customizations: CustomizedItem) => {
+      // Add the customized drink to cart
+      handleAddToCart(baseItem, customizations.size as 'S' | 'M' | 'L' | undefined, customizations);
+
+      // Go back to menu
+      setSelectedDrinkForCustomization(null);
+      setCurrentScreen("menu");
+    };
 
   const handlePlaceOrder = (time: string) => {
-    setPickupTime(time);
-    const newOrderNumber = Math.random().toString(36).substring(2, 8).toUpperCase();
-    setOrderNumber(newOrderNumber);
-    const timestamp = Date.now();
-    setOrderTimestamp(timestamp);
+      setPickupTime(time);
+      const newOrderNumber = Math.random().toString(36).substring(2, 8).toUpperCase();
+      setOrderNumber(newOrderNumber);
+      const timestamp = Date.now();
+      setOrderTimestamp(timestamp);
 
-    if (selectedCafe) {
-      const cartTotal = cart.reduce((sum, item) => {
-        const price = item.selectedSize && item.menuItem.sizes
-          ? item.menuItem.sizes[item.selectedSize]
-          : item.menuItem.price;
-        return sum + (price * item.quantity);
-      }, 0);
+      if (selectedCafe) {
+        const cartTotal = cart.reduce((sum, item) => {
+          // Calculate price based on size or customizations
+          let price = item.menuItem.price;
 
-      const orderTotal = cartTotal * 1.08;
+          if (item.selectedSize && item.menuItem.sizes) {
+            price = item.menuItem.sizes[item.selectedSize];
+          }
 
-      const newOrder: Order = {
-        id: `order-${timestamp}`,
-        orderNumber: newOrderNumber,
-        cafeName: selectedCafe.name,
-        cafeAddress: selectedCafe.address,
-        items: cart.map(item => {
-          const sizeStr = item.selectedSize ? ` (${item.selectedSize})` : '';
-          return `${item.quantity}x ${item.menuItem.name}${sizeStr}`;
-        }),
-        total: orderTotal,
-        status: "preparing",
-        pickupTime: time,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      };
-      setOrders(prevOrders => [newOrder, ...prevOrders]);
-    }
+          // If it's a customized drink, use the custom price
+          if (item.customizations) {
+            price = item.customizations.totalPrice;
+          }
 
-    setCurrentScreen("order-status");
-  };
+          return sum + (price * item.quantity);
+        }, 0);
+
+        const orderTotal = cartTotal * 1.08;
+
+        // Build item descriptions that include customizations
+        const itemDescriptions = cart.map(item => {
+          let description = `${item.quantity}x ${item.menuItem.name}`;
+
+          if (item.selectedSize) {
+            description += ` (${item.selectedSize})`;
+          }
+
+          // Add customization info if available
+          if (item.customizations) {
+            const { milk, syrups, specialInstructions } = item.customizations;
+
+            if (milk && milk !== 'whole') {
+              description += `, ${milk} milk`;
+            }
+
+            if (syrups.length > 0) {
+              description += `, ${syrups.join(', ')} syrup`;
+            }
+
+            if (specialInstructions) {
+              description += `, [${specialInstructions.substring(0, 20)}...]`;
+            }
+          }
+
+          return description;
+        });
+
+        const newOrder: Order = {
+          id: `order-${timestamp}`,
+          orderNumber: newOrderNumber,
+          cafeName: selectedCafe.name,
+          cafeAddress: selectedCafe.address,
+          items: itemDescriptions,
+          total: orderTotal,
+          status: "preparing",
+          pickupTime: time,
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        };
+        setOrders(prevOrders => [newOrder, ...prevOrders]);
+      }
+
+      setCurrentScreen("order-status");
+    };
 
   const handleConfirmPickup = (orderId: string, rating: number) => {
-    console.log("App: handleConfirmPickup called for order:", orderId, "rating:", rating);
+      console.log("App: handleConfirmPickup called for order:", orderId, "rating:", rating);
 
-    setOrders(prevOrders =>
-      prevOrders.map(order =>
-        order.id === orderId
-          ? {
-              ...order,
-              status: "completed",
-              rating: rating
-            }
-          : order
-      )
-    );
+      setOrders(prevOrders =>
+        prevOrders.map(order =>
+          order.id === orderId
+            ? {
+                ...order,
+                status: "completed",
+                rating: rating
+              }
+            : order
+        )
+      );
 
-    console.log("App: Order status updated to 'completed' with rating:", rating);
-    alert(`Thank you for your ${rating}-star rating!`);
-  };
+      console.log("App: Order status updated to 'completed' with rating:", rating);
+      alert(`Thank you for your ${rating}-star rating!`);
+    };
 
-  const handleBackToHome = () => {
-    setCurrentScreen("home");
-    setNavScreen("home");
-    setSelectedCafe(null);
-    setCart([]);
-    setOrderNumber("");
-    setPickupTime("");
-  };
+    const handleBackToHome = () => {
+      setCurrentScreen("home");
+      setNavScreen("home");
+      setSelectedCafe(null);
+      setSelectedDrinkForCustomization(null);
+      setCart([]);
+      setOrderNumber("");
+      setPickupTime("");
+    };
 
   const handleFindCafe = () => {
     setCurrentScreen("locations");
   };
 
   const handleReorder = (orderId: string) => {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
 
-    const cafe = cafes.find(c => c.name === order.cafeName);
-    if (!cafe) return;
+      const cafe = cafes.find(c => c.name === order.cafeName);
+      if (!cafe) return;
 
-    setSelectedCafe(cafe);
+      setSelectedCafe(cafe);
+      setCart([]); // Clear current cart first
 
-    const cafeMenu = getMenuForCafe(cafe.id);
+      // Note: For now, we'll just add the items without customizations
+      // In a real app, you'd need to parse the customizations from the item descriptions
+      const cafeMenu = getMenuForCafe(cafe.id);
 
-    const newCart = order.items.map(itemString => {
-      // Parse "2x Latte (M)" or "1x Cookie"
-      const match = itemString.match(/(\d+)x\s+([^(]+)(?:\s*\(([SML])\))?/);
-      if (!match) return null;
+      order.items.forEach(itemString => {
+        // Simple parsing - in a real app, you'd need more sophisticated parsing
+        const match = itemString.match(/(\d+)x\s+([^(]+)(?:\s*\(([SML])\))?/);
+        if (!match) return;
 
-      const quantity = parseInt(match[1]);
-      const itemName = match[2].trim();
-      const size = match[3] as 'S' | 'M' | 'L' | undefined;
+        const quantity = parseInt(match[1]);
+        const itemName = match[2].trim().split(',')[0].trim(); // Get base name before customizations
+        const size = match[3] as 'S' | 'M' | 'L' | undefined;
 
-      const menuItem = cafeMenu.find(m => m.name === itemName);
-      if (!menuItem) return null;
+        const menuItem = cafeMenu.find(m => m.name === itemName);
+        if (!menuItem) return;
 
-      return { menuItem, quantity, selectedSize: size };
-    }).filter((item): item is CartItem => item !== null);
+        // Add to cart multiple times for quantity
+        for (let i = 0; i < quantity; i++) {
+          handleAddToCart(menuItem, size);
+        }
+      });
 
-    setCart(newCart);
-    setCurrentScreen("cart");
-  };
+      setCurrentScreen("cart");
+    };
+
 
   const handleNavigate = (screen: MainScreen) => {
     setNavScreen(screen);
@@ -385,16 +471,25 @@ export default function App() {
   };
 
   const cartTotal = cart.reduce((sum, item) => {
-    const price = item.selectedSize && item.menuItem.sizes
-      ? item.menuItem.sizes[item.selectedSize]
-      : item.menuItem.price;
-    return sum + (price * item.quantity);
-  }, 0);
+      // Calculate price based on size or customizations
+      let price = item.menuItem.price;
 
-  const orderTotal = cartTotal * 1.08;
-  const activeOrdersCount = orders.filter(o => o.status === "preparing" || o.status === "ready").length;
+      if (item.selectedSize && item.menuItem.sizes) {
+        price = item.menuItem.sizes[item.selectedSize];
+      }
 
-  const showBottomNav = ["home", "orders", "account"].includes(currentScreen);
+      // If it's a customized drink, use the custom price
+      if (item.customizations) {
+        price = item.customizations.totalPrice;
+      }
+
+      return sum + (price * item.quantity);
+    }, 0);
+
+    const orderTotal = cartTotal * 1.08;
+    const activeOrdersCount = orders.filter(o => o.status === "preparing" || o.status === "ready").length;
+
+    const showBottomNav = ["home", "orders", "account"].includes(currentScreen);
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -427,8 +522,21 @@ export default function App() {
               onBack={() => setCurrentScreen("locations")}
               onViewCart={() => setCurrentScreen("cart")}
               userAllergens={userAllergens}
+               onCustomizeDrink={handleCustomizeDrink}
             />
           )}
+
+          {currentScreen === "customize-drink" && selectedDrinkForCustomization && (
+              <CustomizeDrink
+                menuItem={selectedDrinkForCustomization}
+                userAllergens={userAllergens}
+                onAddToCart={handleAddCustomizedDrink}
+                onBack={() => {
+                  setSelectedDrinkForCustomization(null);
+                  setCurrentScreen("menu");
+                }}
+              />
+            )}
 
           {currentScreen === "cart" && selectedCafe && (
             <Cart
@@ -480,8 +588,10 @@ export default function App() {
           {currentScreen === "preferences" && (
             <PreferencesScreen
               userAllergens={userAllergens}
-              onUpdateAllergens={handleUpdateAllergens}
-              onBack={() => setCurrentScreen("account")}
+              userPreferences={userPreferences}
+              onUpdateAllergens={setUserAllergens}
+              onUpdatePreferences={setUserPreferences}
+              onBack={() => setCurrentScreen('account')}
             />
           )}
 
@@ -494,6 +604,12 @@ export default function App() {
             orderCount={activeOrdersCount}
           />
         )}
+
+        <ReceiptModal
+          order={selectedOrder}
+          onClose={() => setSelectedOrder(null)}
+          onReorder={handleReorder}
+        />
       </div>
     </div>
   );

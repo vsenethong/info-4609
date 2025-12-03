@@ -1,164 +1,12 @@
-import { Card } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Clock, MapPin, CheckCircle2, Package, Star, X } from "lucide-react";
+import { Package, Star, X } from "lucide-react";
 import { useState } from "react";
 import { OrderCard, PastOrderCard, Order } from './OrderComponents';
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  cafeName: string;
-  cafeAddress: string;
-  items: string[];
-  total: number;
-  status: "preparing" | "ready" | "completed";
-  pickupTime: string;
-  date: string;
-  rating?: number;
-}
+import { Portal } from "./Portal";
 
 interface OrdersScreenProps {
   orders: Order[];
   onViewOrder: (orderId: string) => void;
   onConfirmPickup?: (orderId: string, rating: number) => void;
-}
-
-function StatusBadge({ status }: { status: Order["status"] }) {
-  switch (status) {
-    case "preparing":
-      return <Badge className="bg-orange-100 text-orange-700">Preparing</Badge>;
-    case "ready":
-      return <Badge className="bg-green-100 text-green-700">Ready</Badge>;
-    default:
-      return <Badge variant="secondary">Completed</Badge>;
-  }
-}
-
-function StatusIcon({ status }: { status: Order["status"] }) {
-  switch (status) {
-    case "preparing":
-      return <Clock className="h-5 w-5 text-orange-600" />;
-    case "ready":
-      return <CheckCircle2 className="h-5 w-5 text-green-600" />;
-    default:
-      return <Package className="h-5 w-5 text-neutral-600" />;
-  }
-}
-
-function OrderCard({
-  order,
-  onViewOrder,
-  onConfirmPickup,
-}: {
-  order: Order;
-  onViewOrder: (id: string) => void;
-  onConfirmPickup: (id: string, e: React.MouseEvent) => void;
-}) {
-  return (
-    <Card
-      className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => onViewOrder(order.id)}
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <StatusIcon status={order.status} />
-          </div>
-
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-sm font-medium">{order.cafeName}</h3>
-              <StatusBadge status={order.status} />
-              {/* show rating if it exists */}
-              {order.rating && (
-                <div className="flex items-center gap-1 ml-auto">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-xs font-semibold">{order.rating}</span>
-                </div>
-              )}
-            </div>
-
-            <p className="text-sm text-neutral-600">
-              Order #{order.orderNumber}
-            </p>
-          </div>
-        </div>
-
-        <span className="text-sm font-semibold">${order.total.toFixed(2)}</span>
-      </div>
-
-      <div className="space-y-2 mb-3">
-        <div className="flex items-center gap-2 text-sm text-neutral-600">
-          <Clock className="h-4 w-4" /> Pickup: {order.pickupTime}
-        </div>
-
-        <div className="flex items-center gap-2 text-sm text-neutral-600">
-          <MapPin className="h-4 w-4" /> {order.cafeAddress}
-        </div>
-      </div>
-
-      <div className="pt-3 border-t">
-        <p className="text-sm text-neutral-600 mb-2">Items:</p>
-        <p className="text-sm mb-3">{order.items.join(", ")}</p>
-      </div>
-
-      {order.status === "ready" && !order.rating && (
-        <Button
-          className="w-full bg-green-50 hover:shadow-lg text-black font-semibold px-6 py-3 rounded-lg shadow-md hover:bg-green-100"
-          onClick={(e) => {
-            e.stopPropagation();
-            onConfirmPickup(order.id, e);
-          }}
-        >
-          Confirm Pickup
-        </Button>
-      )}
-    </Card>
-  );
-}
-
-function PastOrderCard({
-  order,
-  onViewOrder,
-}: {
-  order: Order;
-  onViewOrder: (id: string) => void;
-}) {
-  return (
-    <Card
-      className="p-4 cursor-pointer hover:bg-neutral-50 transition-colors"
-      onClick={() => onViewOrder(order.id)}
-    >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-sm font-medium">{order.cafeName}</h3>
-            {order.rating && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-yellow-50 rounded-full">
-                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                <span className="text-xs font-semibold">{order.rating}.0</span>
-              </div>
-            )}
-          </div>
-          <p className="text-sm text-neutral-600 mb-2">{order.items.join(", ")}</p>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-500">{order.date}</span>
-          </div>
-        </div>
-        <span className="text-sm font-semibold ml-2">${order.total.toFixed(2)}</span>
-      </div>
-
-      <div className="flex items-center justify-between mt-3 pt-3 border-t">
-        <div className="text-xs text-neutral-500">
-          {order.rating ? "Rated" : "Completed"}
-        </div>
-        <Button variant="outline" size="sm" className="h-7 text-xs">
-          Reorder
-        </Button>
-      </div>
-    </Card>
-  );
 }
 
 export function OrdersScreen({
@@ -185,7 +33,6 @@ export function OrdersScreen({
   const handleSubmitPickup = () => {
     if (selectedOrderId && rating > 0) {
       console.log("Submitting rating:", rating, "for order:", selectedOrderId);
-      console.log("Current order status:", selectedOrder?.status);
 
       if (onConfirmPickup) {
         onConfirmPickup(selectedOrderId, rating);
@@ -202,6 +49,7 @@ export function OrdersScreen({
     setShowPickupModal(false);
     setSelectedOrderId(null);
     setRating(0);
+    setHoveredRating(0);
   };
 
   // find the selected order for display in the modal
@@ -222,10 +70,6 @@ export function OrdersScreen({
       </div>
     );
   }
-
-  console.log("🔄 OrdersScreen rendering, showPickupModal:", showPickupModal);
-  console.log("🔄 selectedOrderId:", selectedOrderId);
-  console.log("🔄 selectedOrder:", selectedOrder);
 
   return (
     <>

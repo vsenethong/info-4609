@@ -1,7 +1,7 @@
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { ArrowLeft, Clock, Plus, Minus, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Clock, Plus, Minus, ShoppingCart, AlertTriangle } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
@@ -13,6 +13,7 @@ interface MenuItem {
   image: string;
   category: string;
   allergens?: string[];
+  type?: 'drink' | 'food';
 }
 
 interface Cafe {
@@ -31,20 +32,36 @@ interface CafeMenuProps {
   cafe: Cafe;
   menuItems: MenuItem[];
   cart: CartItem[];
+  userAllergens: string[];
   onAddToCart: (item: MenuItem) => void;
   onRemoveFromCart: (itemId: string) => void;
   onBack: () => void;
   onViewCart: () => void;
+  onCustomizeDrink: (item: MenuItem) => void; // navigate to customize screen
 }
 
-export function CafeMenu({ 
-  cafe, 
-  menuItems, 
-  cart, 
-  onAddToCart, 
+// Allergen labels mapping
+const ALLERGEN_LABELS: Record<string, string> = {
+  "dairy": "Dairy",
+  "gluten": "Gluten",
+  "eggs": "Eggs",
+  "nuts": "Nuts",
+  "soy": "Soy",
+  "shellfish": "Shellfish",
+  "fish": "Fish",
+  "sesame": "Sesame",
+};
+
+export function CafeMenu({
+  cafe,
+  menuItems,
+  cart,
+  userAllergens,
+  onAddToCart,
   onRemoveFromCart,
   onBack,
-  onViewCart 
+  onViewCart,
+  onCustomizeDrink // NEW
 }: CafeMenuProps) {
   const categories = Array.from(new Set(menuItems.map(item => item.category)));
   const cartTotal = cart.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0);
@@ -53,6 +70,27 @@ export function CafeMenu({
   const getItemQuantity = (itemId: string) => {
     const cartItem = cart.find(item => item.menuItem.id === itemId);
     return cartItem ? cartItem.quantity : 0;
+  };
+
+  const hasUserAllergen = (item: MenuItem): boolean => {
+    if (!item.allergens || item.allergens.length === 0) return false;
+    if (userAllergens.length === 0) return false;
+
+    return item.allergens.some(allergen => userAllergens.includes(allergen));
+  };
+
+  const getMatchingAllergens = (item: MenuItem): string[] => {
+    if (!item.allergens || userAllergens.length === 0) return [];
+    return item.allergens.filter(allergen => userAllergens.includes(allergen));
+  };
+
+  const handleAddItem = (item: MenuItem) => {
+    if (item.type === 'drink') {
+      onCustomizeDrink(item);
+    } else {
+      // if it's food, add directly to cart
+      onAddToCart(item);
+    }
   };
 
   return (
@@ -70,6 +108,16 @@ export function CafeMenu({
             </div>
           </div>
         </div>
+
+        {/* Allergen Warning Banner */}
+        {userAllergens.length > 0 && (
+          <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-amber-800">
+              <span className="font-medium">⚠️ Allergen warnings enabled:</span> Items containing your allergens will be highlighted below.
+            </div>
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue={categories[0]} className="flex-1 mt-4">
@@ -87,46 +135,99 @@ export function CafeMenu({
               .filter(item => item.category === category)
               .map((item) => {
                 const quantity = getItemQuantity(item.id);
+                const hasAllergen = hasUserAllergen(item);
+                const matchingAllergens = getMatchingAllergens(item);
+                const isDrink = item.type === 'drink';
+
                 return (
-                  <Card key={item.id} className="overflow-hidden">
+                  <Card
+                    key={item.id}
+                    className={`overflow-hidden ${hasAllergen ? 'border-amber-300 bg-amber-50/50' : ''}`}
+                  >
                     <div className="flex gap-4">
-                      <div className="w-28 h-28 flex-shrink-0">
+                      <div className="w-28 h-28 flex-shrink-0 relative">
                         <ImageWithFallback
                           src={item.image}
                           alt={item.name}
                           className="w-full h-full object-cover"
                         />
+                        {hasAllergen && (
+                          <div className="absolute top-2 left-2">
+                            <Badge variant="destructive" className="text-xs font-medium">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Allergen
+                            </Badge>
+                          </div>
+                        )}
+                        {isDrink && (
+                          <div className="absolute bottom-2 right-2">
+                            <Badge variant="secondary" className="text-xs font-medium">
+                              Customizable
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 py-3 pr-4">
-                        <h3 className="mb-1">{item.name}</h3>
+                        <div className="flex items-start justify-between">
+                          <h3 className="mb-1">{item.name}</h3>
+                          {hasAllergen && (
+                            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                          )}
+                        </div>
                         <p className="text-sm text-neutral-600 mb-2 line-clamp-2">
                           {item.description}
                         </p>
+
+                        {/* Allergen details */}
+                        {hasAllergen && matchingAllergens.length > 0 && (
+                          <div className="mb-2">
+                            <p className="text-xs text-amber-700 font-medium mb-1">
+                              Contains: {matchingAllergens.map(id => ALLERGEN_LABELS[id] || id).join(', ')}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Item's natural allergens (if any) */}
+                        {item.allergens && item.allergens.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {item.allergens.map(allergen => (
+                              <Badge
+                                key={allergen}
+                                variant="outline"
+                                className={`text-xs ${userAllergens.includes(allergen) ? 'border-amber-300 bg-amber-100 text-amber-800' : 'border-gray-200'}`}
+                              >
+                                {ALLERGEN_LABELS[allergen] || allergen}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+
                         <div className="flex items-center justify-between mt-auto">
                           <span className="text-lg">${item.price.toFixed(2)}</span>
                           {quantity === 0 ? (
                             <Button
                               size="sm"
-                              onClick={() => onAddToCart(item)}
+                              onClick={() => handleAddItem(item)}
+                              className={hasAllergen ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-300' : ''}
                             >
                               <Plus className="h-4 w-4 mr-1" />
-                              Add
+                              {isDrink ? "Add" : "Add"}
                             </Button>
                           ) : (
                             <div className="flex items-center gap-2">
                               <Button
                                 size="icon"
                                 variant="outline"
-                                className="h-8 w-8"
+                                className={`h-8 w-8 ${hasAllergen ? 'border-amber-300' : ''}`}
                                 onClick={() => onRemoveFromCart(item.id)}
                               >
                                 <Minus className="h-4 w-4" />
                               </Button>
-                              <span className="w-8 text-center">{quantity}</span>
+                              <span className={`w-8 text-center ${hasAllergen ? 'font-medium' : ''}`}>{quantity}</span>
                               <Button
                                 size="icon"
-                                className="h-8 w-8"
-                                onClick={() => onAddToCart(item)}
+                                className={`h-8 w-8 ${hasAllergen ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-300' : ''}`}
+                                onClick={() => handleAddItem(item)}
                               >
                                 <Plus className="h-4 w-4" />
                               </Button>

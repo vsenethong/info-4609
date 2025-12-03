@@ -1,24 +1,27 @@
+# Campus Cafe Connect App
 
-  # Campus Cafe Connect App
-  
-  ## How to run the code
-  On GitHub, click the green Code<> box and copy the SSH key
+## How to run the code
 
-  Open up `Terminal` application on your desktop
+On GitHub, click the green Code<> box and copy the SSH key
 
-  Run `git clone paste_ssh_here` 
+Open up `Terminal` application on your desktop
 
-  Run `ls` it will list all the files on your computer, `info-4609` should be on there
+Run `git clone paste_ssh_here`
 
-  Run `cd info-4609` to enter the folder of the project
+Run `ls` it will list all the files on your computer, `info-4609` should be on there
 
-  Run `npm i` to install the dependencies.
+Run `cd info-4609` to enter the folder of the project
 
-  Run `npm run dev` to start the development server.
+Run `npm i` to install the dependencies.
 
-  It´ll ask to open up Google Chrome, allow it to deploy the project and it should be running on a website called `localhost`
+Run `npm run dev` to start the development server.
 
-  The app is live and interactable!
-  Refreshing the website will reset the state of the program and there is no data being stored anywhere, this is just a framework.
+It´ll ask to open up Google Chrome, allow it to deploy the project and it should be running on a website called
+`localhost`
 
-  To shut down the program, type `^C` into the `Terminal` application to terminate the program from running infinitely in your computer
+The app is live and interactable!
+Refreshing the website will reset the state of the program and there is no data being stored anywhere, this is just a
+framework.
+
+To shut down the program, type `^C` into the `Terminal` application to terminate the program from running infinitely in
+your computer

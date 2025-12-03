@@ -3,7 +3,7 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { ArrowLeft, Plus, Minus, Trash2, Clock, Check } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { RadioGroup } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Badge } from "./ui/badge";
@@ -15,11 +15,24 @@ interface MenuItem {
   price: number;
   image: string;
   category: string;
+  type?: 'drink' | 'food';
 }
 
+interface CustomizedItem {
+  baseItem: MenuItem;
+  size?: string;
+  milk?: string;
+  syrups: string[];
+  specialInstructions: string;
+  totalPrice: number;
+}
+
+// UPDATED: CartItem now uses CustomizedItem
 interface CartItem {
-  menuItem: MenuItem;
+  menuItem: MenuItem; // Keep menuItem for backward compatibility
   quantity: number;
+  selectedSize?: 'S' | 'M' | 'L';
+  customizations?: CustomizedItem; // NEW: Optional customizations
 }
 
 interface Cafe {
@@ -32,9 +45,9 @@ interface Cafe {
 interface CartProps {
   cafe: Cafe;
   cart: CartItem[];
-  onAddToCart: (item: MenuItem) => void;
-  onRemoveFromCart: (itemId: string) => void;
-  onClearItem: (itemId: string) => void;
+  onAddToCart: (item: MenuItem, size?: 'S' | 'M' | 'L', customizations?: CustomizedItem) => void;
+  onRemoveFromCart: (itemId: string, size?: 'S' | 'M' | 'L', customizations?: CustomizedItem) => void;
+  onClearItem: (itemId: string, size?: 'S' | 'M' | 'L', customizations?: CustomizedItem) => void;
   onBack: () => void;
   onPlaceOrder: (pickupTime: string) => void;
 }
@@ -117,7 +130,21 @@ export function Cart({
   onBack,
   onPlaceOrder,
 }: CartProps) {
-  const subtotal = cart.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0);
+  // UPDATED: Calculate subtotal based on customizations if available
+  const subtotal = cart.reduce((sum, item) => {
+    // If item has customizations, use the customized price
+    if (item.customizations) {
+      return sum + (item.customizations.totalPrice * item.quantity);
+    }
+
+    // Otherwise, use size-based price or default price
+    const price = item.selectedSize && item.menuItem.sizes
+      ? item.menuItem.sizes[item.selectedSize]
+      : item.menuItem.price;
+
+    return sum + (price * item.quantity);
+  }, 0);
+
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
@@ -148,6 +175,41 @@ export function Cart({
       ? `ASAP (~${cafe.waitTime} min)`
       : scheduledTime;
     onPlaceOrder(time);
+  };
+
+  // Generate a unique key for each cart item
+  const getCartItemKey = (item: CartItem) => {
+    if (item.customizations) {
+      // For customized items, include customizations in the key
+      return `${item.menuItem.id}-${item.selectedSize || 'default'}-${JSON.stringify(item.customizations)}`;
+    }
+    // For regular items
+    return `${item.menuItem.id}-${item.selectedSize || 'default'}`;
+  };
+
+  // Format milk name for display
+  const formatMilkName = (milkId: string) => {
+    const milkNames: Record<string, string> = {
+      'whole': 'Whole Milk',
+      'skim': 'Skim Milk',
+      'oat': 'Oat Milk',
+      'almond': 'Almond Milk',
+      'soy': 'Soy Milk',
+      'coconut': 'Coconut Milk',
+    };
+    return milkNames[milkId] || milkId;
+  };
+
+  // Format syrup names for display
+  const formatSyrupNames = (syrupIds: string[]) => {
+    const syrupNames: Record<string, string> = {
+      'vanilla': 'Vanilla',
+      'caramel': 'Caramel',
+      'hazelnut': 'Hazelnut',
+      'pumpkin': 'Pumpkin Spice',
+      'peppermint': 'Peppermint',
+    };
+    return syrupIds.map(id => syrupNames[id] || id).join(', ');
   };
 
   // Empty cart state
@@ -187,54 +249,102 @@ export function Cart({
       <div className="flex-1 overflow-auto space-y-4">
         {/* Cart Items */}
         <div className="space-y-3">
-          {cart.map((item) => (
-            <Card key={item.menuItem.id} className="overflow-hidden">
-              <div className="flex gap-4 p-4">
-                <div className="w-20 h-20 flex-shrink-0">
-                  <ImageWithFallback
-                    src={item.menuItem.image}
-                    alt={item.menuItem.name}
-                    className="w-full h-full object-cover rounded"
-                  />
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-sm font-medium">{item.menuItem.name}</h3>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 -mt-1"
-                      onClick={() => onClearItem(item.menuItem.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
+          {cart.map((item) => {
+            const price = item.customizations
+              ? item.customizations.totalPrice
+              : (item.selectedSize && item.menuItem.sizes
+                ? item.menuItem.sizes[item.selectedSize]
+                : item.menuItem.price);
+
+            return (
+              <Card key={getCartItemKey(item)} className="overflow-hidden">
+                <div className="flex gap-4 p-4">
+                  <div className="w-20 h-20 flex-shrink-0">
+                    <ImageWithFallback
+                      src={item.menuItem.image}
+                      alt={item.menuItem.name}
+                      className="w-full h-full object-cover rounded"
+                    />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
-                    <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="text-sm font-medium">{item.menuItem.name}</h3>
+
+                        {/* Display size if selected */}
+                        {item.selectedSize && (
+                          <p className="text-xs text-neutral-600">Size: {item.selectedSize}</p>
+                        )}
+
+                        {/* Display customizations if available */}
+                        {item.customizations && (
+                          <div className="mt-1 space-y-0.5">
+                            {item.customizations.size && (
+                              <p className="text-xs text-neutral-600">Size: {item.customizations.size}</p>
+                            )}
+                            {item.customizations.milk && item.customizations.milk !== 'whole' && (
+                              <p className="text-xs text-neutral-600">Milk: {formatMilkName(item.customizations.milk)}</p>
+                            )}
+                            {item.customizations.syrups.length > 0 && (
+                              <p className="text-xs text-neutral-600">Syrups: {formatSyrupNames(item.customizations.syrups)}</p>
+                            )}
+                            {item.customizations.specialInstructions && (
+                              <p className="text-xs text-neutral-500 italic">
+                                Note: {item.customizations.specialInstructions.substring(0, 30)}
+                                {item.customizations.specialInstructions.length > 30 ? '...' : ''}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                       <Button
+                        variant="ghost"
                         size="icon"
-                        variant="outline"
-                        className="h-7 w-7"
-                        onClick={() => onRemoveFromCart(item.menuItem.id)}
-                        disabled={item.quantity <= 1}
+                        className="h-8 w-8 -mt-1"
+                        onClick={() => onClearItem(
+                          item.menuItem.id,
+                          item.selectedSize,
+                          item.customizations
+                        )}
                       >
-                        <Minus className="h-3 w-3" />
+                        <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
-                      <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
-                      <Button
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => onAddToCart(item.menuItem)}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">${(price * item.quantity).toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-7 w-7"
+                          onClick={() => onRemoveFromCart(
+                            item.menuItem.id,
+                            item.selectedSize,
+                            item.customizations
+                          )}
+                          disabled={item.quantity <= 1}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                        <Button
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => onAddToCart(
+                            item.menuItem,
+                            item.selectedSize,
+                            item.customizations
+                          )}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
 
         {/* Pickup Time Section - IMPROVED VISIBILITY */}

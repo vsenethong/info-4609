@@ -18,10 +18,7 @@ import {
 import { useState, useEffect } from "react";
 import { Portal } from "./Portal";
 
-// ============================================================================
 // SHARED INTERFACES
-// ============================================================================
-
 export interface Order {
   id: string;
   orderNumber: string;
@@ -56,10 +53,7 @@ export interface Cafe {
   waitTime: number;
 }
 
-// ============================================================================
 // UTILITY COMPONENTS
-// ============================================================================
-
 function StatusBadge({ status }: { status: Order["status"] }) {
   switch (status) {
     case "preparing":
@@ -93,10 +87,8 @@ function getStatusColor(status: Order["status"]) {
   }
 }
 
-// ============================================================================
-// MODAL COMPONENT
-// ============================================================================
 
+// MODAL COMPONENT
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -142,13 +134,6 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 // ============================================================================
 // RECEIPT MODAL COMPONENT
 // ============================================================================
-
-export interface ReceiptModalProps {
-  order: Order | null;
-  onClose: () => void;
-  onReorder?: (orderId: string) => void;
-}
-
 export function ReceiptModal({ order, onClose, onReorder }: ReceiptModalProps) {
   if (!order) return null;
 
@@ -157,140 +142,221 @@ export function ReceiptModal({ order, onClose, onReorder }: ReceiptModalProps) {
   const tip = 0;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-white">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Order Receipt</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Cafe Info */}
-          <div className="text-center border-b pb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3" style={{ backgroundColor: '#CFB87C' }}>
-              <Coffee className="h-8 w-8 text-white" />
-            </div>
-            <h3 className="font-semibold text-lg mb-1">{order.cafeName}</h3>
-            <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
-              <MapPin className="h-4 w-4" />
-              <span>{order.cafeAddress}</span>
-            </div>
+    <Portal>
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          zIndex: 99999
+        }}
+        onClick={onClose}
+      >
+        <div
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            width: '100%',
+            maxWidth: '448px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            position: 'relative',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div style={{
+            position: 'sticky',
+            top: 0,
+            backgroundColor: 'white',
+            borderBottom: '1px solid #e5e7eb',
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: 600 }}>Order Receipt</h2>
+            <button
+              onClick={onClose}
+              style={{
+                padding: '8px',
+                borderRadius: '4px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
-          {/* Order Details */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-neutral-600">Order Number</span>
-              <span className="font-mono font-semibold">{order.orderNumber}</span>
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Cafe Info */}
+            <div style={{ textAlign: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '24px' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '64px',
+                height: '64px',
+                borderRadius: '16px',
+                backgroundColor: '#CFB87C',
+                marginBottom: '12px'
+              }}>
+                <Coffee className="h-8 w-8" style={{ color: 'white' }} />
+              </div>
+              <h3 style={{ fontWeight: 600, fontSize: '1.125rem', marginBottom: '4px' }}>{order.cafeName}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.875rem', color: '#6b7280' }}>
+                <MapPin className="h-4 w-4" />
+                <span>{order.cafeAddress}</span>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-neutral-600">Date & Time</span>
-              <span className="font-medium">{order.date} at {order.pickupTime}</span>
-            </div>
+            {/* Order Details */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}>
+                <span style={{ color: '#6b7280' }}>Order Number</span>
+                <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{order.orderNumber}</span>
+              </div>
 
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-neutral-600">Status</span>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                order.status === 'completed'
-                  ? 'bg-green-100 text-green-800'
-                  : order.status === 'ready'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-amber-100 text-amber-800'
-              }`}>
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-              </span>
-            </div>
-          </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}>
+                <span style={{ color: '#6b7280' }}>Date & Time</span>
+                <span style={{ fontWeight: 500 }}>{order.date} at {order.pickupTime}</span>
+              </div>
 
-          {/* Items */}
-          <div className="border-t pt-4 space-y-3">
-            <h4 className="font-semibold text-sm text-neutral-700">Order Items</h4>
-            {order.items.map((item, index) => (
-              <div key={index} className="flex justify-between items-start">
-                <div className="flex-1">
-                  <span className="text-sm">1x {item}</span>
-                </div>
-                <span className="text-sm font-medium">
-                  ${(subtotal / order.items.length).toFixed(2)}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}>
+                <span style={{ color: '#6b7280' }}>Status</span>
+                <span style={{
+                  padding: '4px 8px',
+                  borderRadius: '9999px',
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  backgroundColor: order.status === 'completed' ? '#dcfce7' : order.status === 'ready' ? '#dbeafe' : '#fef3c7',
+                  color: order.status === 'completed' ? '#166534' : order.status === 'ready' ? '#1e40af' : '#92400e'
+                }}>
+                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                 </span>
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* Totals */}
-          <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-neutral-600">Subtotal</span>
-              <span className="font-medium">${subtotal.toFixed(2)}</span>
+            {/* Items */}
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <h4 style={{ fontWeight: 600, fontSize: '0.875rem', color: '#374151' }}>Order Items</h4>
+              {order.items.map((item, index) => (
+                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: '0.875rem' }}>{item}</span>
+                  </div>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                    ${(subtotal / order.items.length).toFixed(2)}
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-neutral-600">Tax</span>
-              <span className="font-medium">${tax.toFixed(2)}</span>
-            </div>
-            {tip > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Tip</span>
-                <span className="font-medium">${tip.toFixed(2)}</span>
+
+            {/* Totals */}
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                <span style={{ color: '#6b7280' }}>Subtotal</span>
+                <span style={{ fontWeight: 500 }}>${subtotal.toFixed(2)}</span>
               </div>
-            )}
-            <div className="flex justify-between text-base font-semibold border-t pt-2">
-              <span>Total</span>
-              <span>${order.total.toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                <span style={{ color: '#6b7280' }}>Tax</span>
+                <span style={{ fontWeight: 500 }}>${tax.toFixed(2)}</span>
+              </div>
+              {tip > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                  <span style={{ color: '#6b7280' }}>Tip</span>
+                  <span style={{ fontWeight: 500 }}>${tip.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '1rem', fontWeight: 600 }}>
+                <span>Total</span>
+                <span>${order.total.toFixed(2)}</span>
+              </div>
             </div>
-          </div>
 
-          {/* Footer Message */}
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-neutral-600">
-              Thank you for your order! 🎉
-            </p>
-            <p className="text-xs text-neutral-500 mt-1">
-              We hope you enjoyed your {order.cafeName} experience
-            </p>
-          </div>
+            {/* Footer Message */}
+            <div style={{
+              background: 'linear-gradient(to bottom right, #eff6ff, #faf5ff)',
+              borderRadius: '8px',
+              padding: '16px',
+              textAlign: 'center'
+            }}>
+              <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                Thank you for your order! 🎉
+              </p>
+              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '4px' }}>
+                We hope you enjoyed your {order.cafeName} experience
+              </p>
+            </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={onClose}
-            >
-              Close
-            </Button>
-            {onReorder && (
-              <Button
-                className="flex-1"
-                style={{ backgroundColor: '#CFB87C' }}
-                onClick={() => {
-                  onReorder(order.id);
-                  onClose();
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '8px', paddingTop: '8px' }}>
+              <button
+                onClick={onClose}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontWeight: 500,
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  border: '1px solid #d1d5db',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
                 }}
               >
-                <Clock className="h-4 w-4 mr-2" />
-                Order Again
-              </Button>
-            )}
+                Close
+              </button>
+              {onReorder && (
+                <button
+                  onClick={() => {
+                    onReorder(order.id);
+                    onClose();
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontWeight: 500,
+                    backgroundColor: '#CFB87C',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <Clock className="h-4 w-4" />
+                  Order Again
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </Card>
-    </div>
+      </div>
+    </Portal>
   );
 }
 
 // ============================================================================
 // ORDER DETAILS COMPONENT
 // ============================================================================
-
 export interface OrderDetailsProps {
   order: Order;
   onBack: () => void;
@@ -427,7 +493,6 @@ export function OrderDetails({ order, onBack, onReorder }: OrderDetailsProps) {
 // ============================================================================
 // ORDER STATUS COMPONENT (Live Tracking)
 // ============================================================================
-
 export interface OrderStatusProps {
   cafe: Cafe;
   items: CartItem[];
@@ -630,7 +695,6 @@ export function OrderStatus({
 // ============================================================================
 // ORDER CARD COMPONENTS (for OrdersScreen)
 // ============================================================================
-
 export function OrderCard({
   order,
   onViewOrder,

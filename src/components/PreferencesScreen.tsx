@@ -3,7 +3,21 @@ import { ArrowLeft, Check } from "lucide-react";
 
 interface PreferencesScreenProps {
   userAllergens: string[];
+  userPreferences?: {
+    notificationsEnabled: boolean;
+    orderReminders: boolean;
+    promotionalEmails: boolean;
+    defaultPickupTime: string;
+    favoriteLocation: string;
+  };
   onUpdateAllergens: (allergens: string[]) => void;
+  onUpdatePreferences?: (preferences: {
+    notificationsEnabled: boolean;
+    orderReminders: boolean;
+    promotionalEmails: boolean;
+    defaultPickupTime: string;
+    favoriteLocation: string;
+  }) => void;
   onBack: () => void;
 }
 
@@ -20,24 +34,29 @@ const COMMON_ALLERGENS = [
 
 export function PreferencesScreen({
   userAllergens,
+  userPreferences,
   onUpdateAllergens,
+  onUpdatePreferences,
   onBack
 }: PreferencesScreenProps) {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>(userAllergens);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [orderReminders, setOrderReminders] = useState(true);
-  const [promotionalEmails, setPromotionalEmails] = useState(false);
 
-  // Load preferences from localStorage on mount
-  useState(() => {
-    const savedPrefs = localStorage.getItem('userPreferences');
-    if (savedPrefs) {
-      const prefs = JSON.parse(savedPrefs);
-      setNotificationsEnabled(prefs.notificationsEnabled ?? true);
-      setOrderReminders(prefs.orderReminders ?? true);
-      setPromotionalEmails(prefs.promotionalEmails ?? false);
-    }
-  });
+  // Initialize preferences from props or use defaults
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    userPreferences?.notificationsEnabled ?? true
+  );
+  const [orderReminders, setOrderReminders] = useState(
+    userPreferences?.orderReminders ?? true
+  );
+  const [promotionalEmails, setPromotionalEmails] = useState(
+    userPreferences?.promotionalEmails ?? false
+  );
+  const [defaultPickupTime, setDefaultPickupTime] = useState(
+    userPreferences?.defaultPickupTime ?? "asap"
+  );
+  const [favoriteLocation, setFavoriteLocation] = useState(
+    userPreferences?.favoriteLocation ?? "none"
+  );
 
   const toggleAllergen = (allergenId: string) => {
     setSelectedAllergens(prev => {
@@ -50,17 +69,32 @@ export function PreferencesScreen({
   };
 
   const handleSave = () => {
-    onUpdateAllergens(selectedAllergens);
-
-    // Save notification preferences to localStorage
-    const preferences = {
+    console.log("Saving allergens:", selectedAllergens);
+    console.log("Saving preferences:", {
       notificationsEnabled,
       orderReminders,
       promotionalEmails,
-    };
-    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+      defaultPickupTime,
+      favoriteLocation,
+    });
+
+    onUpdateAllergens(selectedAllergens);
+
+    // Save preferences if the callback is provided
+    if (onUpdatePreferences) {
+      onUpdatePreferences({
+        notificationsEnabled,
+        orderReminders,
+        promotionalEmails,
+        defaultPickupTime,
+        favoriteLocation,
+      });
+    } else {
+      console.log("onUpdatePreferences callback is not provided!");
+    }
 
     onBack();
+    alert(`Your preferences have been changed!`);
   };
 
   return (
@@ -131,120 +165,159 @@ export function PreferencesScreen({
 
         {/* Notifications Section */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6">
-          <h2 className="text-lg font-semibold mb-4">Notifications</h2>
+          <h2 className="text-lg font-semibold mb-6">Notifications</h2>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">Push Notifications</div>
-                <div className="text-sm text-neutral-600">
+          <div className="space-y-6">
+            {/* Push Notifications Toggle */}
+            <div className="flex items-center justify-between py-2">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">Push Notifications</div>
+                <div className="text-sm text-gray-600 mt-1">
                   Get notified when your order is ready
                 </div>
               </div>
               <button
                 onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                type="button"
                 className={`
-                  relative w-12 h-7 rounded-full transition-colors
-                  ${notificationsEnabled ? 'bg-blue-500' : 'bg-neutral-300'}
+                  relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full
+                  border-2 border-transparent transition-colors duration-200 ease-in-out
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                  ${notificationsEnabled ? 'bg-blue-600' : 'bg-gray-100'}
                 `}
+                role="switch"
+                aria-checked={notificationsEnabled}
               >
-                <div
+                <span
                   className={`
-                    absolute top-1 w-5 h-5 bg-white rounded-full transition-transform
-                    ${notificationsEnabled ? 'translate-x-6' : 'translate-x-1'}
+                    pointer-events-none inline-block h-6 w-6 transform rounded-full
+                    bg-white shadow-lg ring-0 transition duration-200 ease-in-out
+                    ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}
                   `}
                 />
               </button>
             </div>
 
-            <div className="border-t border-neutral-200 pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Order Reminders</div>
-                  <div className="text-sm text-neutral-600">
-                    Remind me to pick up my order
-                  </div>
+            {/* Divider */}
+            <div className="border-t border-gray-200"></div>
+
+            {/* Order Reminders Toggle */}
+            <div className="flex items-center justify-between py-2">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">Order Reminders</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  Remind me to pick up my order
                 </div>
-                <button
-                  onClick={() => setOrderReminders(!orderReminders)}
-                  className={`
-                    relative w-12 h-7 rounded-full transition-colors
-                    ${orderReminders ? 'bg-blue-500' : 'bg-neutral-300'}
-                  `}
-                >
-                  <div
-                    className={`
-                      absolute top-1 w-5 h-5 bg-white rounded-full transition-transform
-                      ${orderReminders ? 'translate-x-6' : 'translate-x-1'}
-                    `}
-                  />
-                </button>
               </div>
+              <button
+                onClick={() => setOrderReminders(!orderReminders)}
+                type="button"
+                className={`
+                  relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full
+                  border-2 border-transparent transition-colors duration-200 ease-in-out
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                  ${orderReminders ? 'bg-blue-600' : 'bg-gray-100'}
+                `}
+                role="switch"
+                aria-checked={orderReminders}
+              >
+                <span
+                  className={`
+                    pointer-events-none inline-block h-6 w-6 transform rounded-full
+                    bg-white shadow-lg ring-0 transition duration-200 ease-in-out
+                    ${orderReminders ? 'translate-x-5' : 'translate-x-0'}
+                  `}
+                />
+              </button>
             </div>
 
-            <div className="border-t border-neutral-200 pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium">Promotional Emails</div>
-                  <div className="text-sm text-neutral-600">
-                    Receive deals and special offers
-                  </div>
+            {/* Divider */}
+            <div className="border-t border-gray-200"></div>
+
+            {/* Promotional Emails Toggle */}
+            <div className="flex items-center justify-between py-2">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">Promotional Emails</div>
+                <div className="text-sm text-gray-600 mt-1">
+                  Receive deals and special offers
                 </div>
-                <button
-                  onClick={() => setPromotionalEmails(!promotionalEmails)}
-                  className={`
-                    relative w-12 h-7 rounded-full transition-colors
-                    ${promotionalEmails ? 'bg-blue-500' : 'bg-neutral-300'}
-                  `}
-                >
-                  <div
-                    className={`
-                      absolute top-1 w-5 h-5 bg-white rounded-full transition-transform
-                      ${promotionalEmails ? 'translate-x-6' : 'translate-x-1'}
-                    `}
-                  />
-                </button>
               </div>
+              <button
+                onClick={() => setPromotionalEmails(!promotionalEmails)}
+                type="button"
+                className={`
+                  relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full
+                  border-2 border-transparent transition-colors duration-200 ease-in-out
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                  ${promotionalEmails ? 'bg-blue-600' : 'bg-gray-100'}
+                `}
+                role="switch"
+                aria-checked={promotionalEmails}
+              >
+                <span
+                  className={`
+                    pointer-events-none inline-block h-6 w-6 transform rounded-full
+                    bg-white shadow-lg ring-0 transition duration-200 ease-in-out
+                    ${promotionalEmails ? 'translate-x-5' : 'translate-x-0'}
+                  `}
+                />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Default Pickup Time */}
+        {/* Order Preferences */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6">
-          <h2 className="text-lg font-semibold mb-4">Order Preferences</h2>
+          <h2 className="text-lg font-semibold mb-6">Order Preferences</h2>
 
-          <div className="space-y-3">
-            <label className="block">
-              <span className="text-sm font-medium text-neutral-700 mb-1 block">
+          <div className="space-y-6">
+            {/* Default Pickup Time */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-900">
                 Default Pickup Time
-              </span>
-              <select className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>ASAP</option>
-                <option>15 minutes</option>
-                <option>30 minutes</option>
-                <option>1 hour</option>
+              </label>
+              <select
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                         bg-white text-gray-900"
+                value={defaultPickupTime}
+                onChange={(e) => setDefaultPickupTime(e.target.value)}
+              >
+                <option value="asap">ASAP</option>
+                <option value="15">15 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="60">1 hour</option>
               </select>
-            </label>
+            </div>
 
-            <label className="block">
-              <span className="text-sm font-medium text-neutral-700 mb-1 block">
+            {/* Favorite Location */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-900">
                 Favorite Location
-              </span>
-              <select className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>None</option>
-                <option>Starbucks (UMC)</option>
-                <option>WeatherTech Cafe & Bakery</option>
-                <option>The Laughing Goat</option>
-                <option>Fen's Cafe</option>
+              </label>
+              <select
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg
+                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                         bg-white text-gray-900"
+                value={favoriteLocation}
+                onChange={(e) => setFavoriteLocation(e.target.value)}
+              >
+                <option value="none">None</option>
+                <option value="umc">Starbucks (UMC)</option>
+                <option value="weathertech">WeatherTech Cafe & Bakery</option>
+                <option value="laughing-goat">The Laughing Goat</option>
+                <option value="fens">Fen's Cafe</option>
               </select>
-            </label>
+            </div>
           </div>
         </div>
 
         {/* Save Button */}
         <button
           onClick={handleSave}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold
+                   hover:bg-blue-700 transition-colors duration-200
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Save Preferences
         </button>
