@@ -37,10 +37,9 @@ interface CafeMenuProps {
   onRemoveFromCart: (itemId: string) => void;
   onBack: () => void;
   onViewCart: () => void;
-  onCustomizeDrink: (item: MenuItem) => void; // navigate to customize screen
+  onCustomizeDrink: (item: MenuItem) => void;
 }
 
-// Allergen labels mapping
 const ALLERGEN_LABELS: Record<string, string> = {
   "dairy": "Dairy",
   "gluten": "Gluten",
@@ -61,7 +60,7 @@ export function CafeMenu({
   onRemoveFromCart,
   onBack,
   onViewCart,
-  onCustomizeDrink // NEW
+  onCustomizeDrink
 }: CafeMenuProps) {
   const categories = Array.from(new Set(menuItems.map(item => item.category)));
   const cartTotal = cart.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0);
@@ -109,7 +108,7 @@ export function CafeMenu({
           </div>
         </div>
 
-        {/* Allergen Warning Banner */}
+        {/* allergen warning banner */}
         {userAllergens.length > 0 && (
           <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -187,7 +186,7 @@ export function CafeMenu({
                           </div>
                         )}
 
-                        {/* Item's natural allergens (if any) */}
+                        {/* natural allergens (if any) */}
                         {item.allergens && item.allergens.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-2">
                             {item.allergens.map(allergen => (

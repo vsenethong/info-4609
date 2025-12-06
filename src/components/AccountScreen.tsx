@@ -108,7 +108,6 @@ export function AccountScreen({
 
   return (
     <div className="space-y-6">
-      {/* Profile Header */}
       <div className="text-center pt-8 pb-6">
         <Avatar className="w-24 h-24 mx-auto mb-4">
           <AvatarImage src="" />
@@ -166,7 +165,6 @@ export function AccountScreen({
         </Card>
       </div>
 
-      {/* Rewards Card */}
       <Card className="p-4 bg-gradient-to-br from-purple-50 to-white-50 border-purple-100" style={{ backgroundColor: '#CFB87C'}}>
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm">Rewards Points</h3>
@@ -178,7 +176,6 @@ export function AccountScreen({
         <p className="text-sm text-neutral-600">150 points until next free drink</p>
       </Card>
 
-      {/* Logout */}
       <Button 
         variant="outline" 
         className="w-full" 

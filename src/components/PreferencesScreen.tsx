@@ -80,7 +80,6 @@ export function PreferencesScreen({
 
     onUpdateAllergens(selectedAllergens);
 
-    // Save preferences if the callback is provided
     if (onUpdatePreferences) {
       onUpdatePreferences({
         notificationsEnabled,

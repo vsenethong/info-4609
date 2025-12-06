@@ -18,7 +18,6 @@ import {
 import { useState, useEffect } from "react";
 import { Portal } from "./Portal";
 
-// SHARED INTERFACES
 export interface Order {
   id: string;
   orderNumber: string;
@@ -53,7 +52,7 @@ export interface Cafe {
   waitTime: number;
 }
 
-// UTILITY COMPONENTS
+// utility components
 function StatusBadge({ status }: { status: Order["status"] }) {
   switch (status) {
     case "preparing":

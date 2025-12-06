@@ -18,7 +18,6 @@ export function HomeScreen({
 }: HomeScreenProps) {
 
   const handleCardClick = (orderId: string, e: React.MouseEvent) => {
-    // Check if the click was on the "Order Again" button
     const target = e.target as HTMLElement;
     const isOrderAgainButton = target.closest('button')?.textContent?.includes('Order Again');
     const isViewReceiptButton = target.closest('button')?.textContent?.includes('View Receipt');
@@ -182,7 +181,6 @@ export function HomeScreen({
         </div>
       )}
 
-      {/* Bottom pop up */}
       <Card className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 border-blue-100">
         <div className="flex items-start gap-3">
           <Coffee className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />

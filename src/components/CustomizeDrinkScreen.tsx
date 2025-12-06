@@ -11,7 +11,7 @@ interface CustomizationOption {
     id: string;
     name: string;
     price: number;
-    allergens?: string[]; // milk alternatives
+    allergens?: string[];
   }[];
 }
 
@@ -48,20 +48,17 @@ export function CustomizeDrink({
   onAddToCart,
   onBack
 }: CustomizeDrinkProps) {
-  // Default customizations
   const [size, setSize] = useState("M");
   const [milk, setMilk] = useState("whole");
   const [syrups, setSyrups] = useState<string[]>([]);
   const [specialInstructions, setSpecialInstructions] = useState("");
 
-  // Size options
   const sizeOptions = [
     { id: "S", name: "Small (12oz)", price: 0 },
     { id: "M", name: "Medium (16oz)", price: 0.50 },
     { id: "L", name: "Large (20oz)", price: 1.00 },
   ];
 
-  // Milk options (with allergen info)
   const milkOptions = [
     { id: "whole", name: "Whole Milk", price: 0, allergens: ["dairy"] },
     { id: "skim", name: "Skim Milk", price: 0, allergens: ["dairy"] },
@@ -71,7 +68,6 @@ export function CustomizeDrink({
     { id: "coconut", name: "Coconut Milk", price: 0.75, allergens: [] },
   ];
 
-  // Syrup options
   const syrupOptions = [
     { id: "vanilla", name: "Vanilla", price: 0.50 },
     { id: "caramel", name: "Caramel", price: 0.50 },
@@ -130,7 +126,6 @@ export function CustomizeDrink({
 
   const totalPrice = calculateTotalPrice();
 
-  // if selected milk contains user allergens
   const selectedMilkOption = milkOptions.find(m => m.id === milk);
   const hasMilkAllergen = selectedMilkOption?.allergens?.some(allergen =>
     userAllergens.includes(allergen)
@@ -138,7 +133,6 @@ export function CustomizeDrink({
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
       <div className="bg-white border-b border-neutral-200 px-4 py-4 flex items-center gap-3">
         <button
           onClick={onBack}
@@ -153,7 +147,6 @@ export function CustomizeDrink({
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Allergen Warning for Selected Milk */}
         {hasMilkAllergen && selectedMilkOption && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <p className="text-sm text-amber-800 font-medium">
@@ -162,7 +155,6 @@ export function CustomizeDrink({
           </div>
         )}
 
-        {/* Size Selection */}
         <Card className="p-4">
           <h2 className="text-lg font-semibold mb-4">Size</h2>
           <div className="grid grid-cols-3 gap-2">
@@ -190,7 +182,6 @@ export function CustomizeDrink({
           </div>
         </Card>
 
-        {/* Milk Selection */}
         <Card className="p-4">
           <h2 className="text-lg font-semibold mb-4">Milk</h2>
           <div className="space-y-2">
@@ -239,7 +230,6 @@ export function CustomizeDrink({
           </div>
         </Card>
 
-        {/* Syrup Selection */}
         <Card className="p-4">
           <h2 className="text-lg font-semibold mb-4">Syrups & Flavors</h2>
           <p className="text-sm text-neutral-600 mb-4">Select additional flavors</p>
@@ -283,7 +273,6 @@ export function CustomizeDrink({
             })}
           </div>
 
-          {/* Selected Syrups Summary */}
           {syrups.length > 0 && (
             <div className="mt-4 pt-4 border-t border-neutral-200">
               <p className="text-sm font-medium text-neutral-700 mb-2">Selected syrups:</p>
@@ -298,7 +287,6 @@ export function CustomizeDrink({
           )}
         </Card>
 
-        {/* Special Instructions */}
         <Card className="p-4">
           <h2 className="text-lg font-semibold mb-4">Special Instructions</h2>
           <Textarea
@@ -313,7 +301,6 @@ export function CustomizeDrink({
           </div>
         </Card>
 
-        {/* Price Summary */}
         <Card className="p-4">
           <h2 className="text-lg font-semibold mb-4">Price Summary</h2>
           <div className="space-y-2">
@@ -322,7 +309,6 @@ export function CustomizeDrink({
               <span>${menuItem.price.toFixed(2)}</span>
             </div>
 
-            {/* Size Price */}
             {sizeOptions.find(s => s.id === size)?.price > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-600">Size upgrade</span>
@@ -330,7 +316,6 @@ export function CustomizeDrink({
               </div>
             )}
 
-            {/* Milk Price */}
             {milkOptions.find(m => m.id === milk)?.price > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-600">Milk alternative</span>
@@ -338,7 +323,6 @@ export function CustomizeDrink({
               </div>
             )}
 
-            {/* Syrup Prices */}
             {syrups.map(syrupId => {
               const syrup = syrupOptions.find(s => s.id === syrupId);
               if (!syrup) return null;
@@ -350,10 +334,8 @@ export function CustomizeDrink({
               );
             })}
 
-            {/* Divider */}
             <div className="border-t border-neutral-200 my-2"></div>
 
-            {/* Total */}
             <div className="flex justify-between text-lg font-semibold">
               <span>Total</span>
               <span>${totalPrice.toFixed(2)}</span>
@@ -361,7 +343,6 @@ export function CustomizeDrink({
           </div>
         </Card>
 
-        {/* Add to Cart Button */}
         <Button
           className="w-full h-12 text-lg font-semibold"
           size="lg"

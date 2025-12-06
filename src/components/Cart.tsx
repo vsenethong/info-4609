@@ -27,12 +27,11 @@ interface CustomizedItem {
   totalPrice: number;
 }
 
-// UPDATED: CartItem now uses CustomizedItem
 interface CartItem {
-  menuItem: MenuItem; // Keep menuItem for backward compatibility
+  menuItem: MenuItem;
   quantity: number;
   selectedSize?: 'S' | 'M' | 'L';
-  customizations?: CustomizedItem; // NEW: Optional customizations
+  customizations?: CustomizedItem;
 }
 
 interface Cafe {
@@ -52,7 +51,6 @@ interface CartProps {
   onPlaceOrder: (pickupTime: string) => void;
 }
 
-// Reusable pickup time option component
 interface PickupOptionProps {
   id: string;
   value: string;
@@ -130,14 +128,11 @@ export function Cart({
   onBack,
   onPlaceOrder,
 }: CartProps) {
-  // UPDATED: Calculate subtotal based on customizations if available
   const subtotal = cart.reduce((sum, item) => {
-    // If item has customizations, use the customized price
     if (item.customizations) {
       return sum + (item.customizations.totalPrice * item.quantity);
     }
 
-    // Otherwise, use size-based price or default price
     const price = item.selectedSize && item.menuItem.sizes
       ? item.menuItem.sizes[item.selectedSize]
       : item.menuItem.price;
@@ -177,17 +172,13 @@ export function Cart({
     onPlaceOrder(time);
   };
 
-  // Generate a unique key for each cart item
   const getCartItemKey = (item: CartItem) => {
     if (item.customizations) {
-      // For customized items, include customizations in the key
       return `${item.menuItem.id}-${item.selectedSize || 'default'}-${JSON.stringify(item.customizations)}`;
     }
-    // For regular items
     return `${item.menuItem.id}-${item.selectedSize || 'default'}`;
   };
 
-  // Format milk name for display
   const formatMilkName = (milkId: string) => {
     const milkNames: Record<string, string> = {
       'whole': 'Whole Milk',
@@ -200,7 +191,6 @@ export function Cart({
     return milkNames[milkId] || milkId;
   };
 
-  // Format syrup names for display
   const formatSyrupNames = (syrupIds: string[]) => {
     const syrupNames: Record<string, string> = {
       'vanilla': 'Vanilla',
@@ -212,7 +202,6 @@ export function Cart({
     return syrupIds.map(id => syrupNames[id] || id).join(', ');
   };
 
-  // Empty cart state
   if (cart.length === 0) {
     return (
       <div className="flex flex-col h-full">
@@ -234,7 +223,6 @@ export function Cart({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Button variant="ghost" size="icon" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
@@ -245,9 +233,7 @@ export function Cart({
         </div>
       </div>
 
-      {/* Scrollable content */}
       <div className="flex-1 overflow-auto space-y-4">
-        {/* Cart Items */}
         <div className="space-y-3">
           {cart.map((item) => {
             const price = item.customizations
@@ -271,12 +257,10 @@ export function Cart({
                       <div>
                         <h3 className="text-sm font-medium">{item.menuItem.name}</h3>
 
-                        {/* Display size if selected */}
                         {item.selectedSize && (
                           <p className="text-xs text-neutral-600">Size: {item.selectedSize}</p>
                         )}
 
-                        {/* Display customizations if available */}
                         {item.customizations && (
                           <div className="mt-1 space-y-0.5">
                             {item.customizations.size && (
@@ -347,7 +331,6 @@ export function Cart({
           })}
         </div>
 
-        {/* Pickup Time Section - IMPROVED VISIBILITY */}
         <Card className="p-4">
           <h3 className="mb-4 font-semibold">Pickup Time</h3>
 
@@ -356,7 +339,6 @@ export function Cart({
             onValueChange={(v) => setPickupOption(v as "asap" | "scheduled")}
             className="space-y-3"
           >
-            {/* ASAP Option */}
             <PickupOption
               id="asap"
               value="asap"
@@ -367,7 +349,6 @@ export function Cart({
               icon={<Clock className="h-4 w-4 text-green-600" />}
             />
 
-            {/* Schedule for Later Option */}
             <PickupOption
               id="scheduled"
               value="scheduled"
@@ -378,7 +359,6 @@ export function Cart({
             />
           </RadioGroup>
 
-          {/* Time Selector for Scheduled Pickup */}
           {pickupOption === "scheduled" && (
             <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="mb-2">
@@ -408,7 +388,6 @@ export function Cart({
           )}
         </Card>
 
-        {/* Order Summary */}
         <Card className="p-4">
           <h3 className="mb-3 font-semibold">Order Summary</h3>
           <div className="space-y-2 text-sm">
@@ -428,7 +407,6 @@ export function Cart({
         </Card>
       </div>
 
-      {/* Fixed Bottom Button */}
       <div className="sticky bottom-0 bg-white border-t pt-4 mt-4">
         <Button
           className="w-full h-12"
